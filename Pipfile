@@ -4,8 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-adbus = {git = "https://github.com/ccxtechnologies/adbus", editable = true}
-debussy = {git = "https://github.com/ldo/dbussy", editable = true}
+dbussy = {git = "https://github.com/ldo/dbussy", editable = true}
 
 [dev-packages]
 

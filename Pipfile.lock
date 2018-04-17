@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c2549a017e8992f52ab333c03b88d7d470d6111505b7056a87c3909606fcf45f"
+            "sha256": "651367638c68f606288242fc459ef7e4d34c74e3494dc334b1a1c94fb5deac31"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,19 +16,10 @@
         ]
     },
     "default": {
-        "adbus": {
-            "editable": true,
-            "git": "https://github.com/ccxtechnologies/adbus",
-            "ref": "764b280dff384444cf0fcd6c6238a00b44f83f8b"
-        },
         "dbussy": {
             "editable": true,
             "git": "https://github.com/ldo/dbussy",
             "ref": "cc89ae8b3293d7089d8ba8d966f8c0efe5558f83"
-        },
-        "debussy": {
-            "editable": true,
-            "git": "https://github.com/ldo/dbussy"
         }
     },
     "develop": {}
