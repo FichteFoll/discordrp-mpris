@@ -19,6 +19,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 Player = ampris2.PlayerInterfaces
 
+STATE_PRIORITY = (ampris2.PlaybackStatus.PLAYING,
+                  ampris2.PlaybackStatus.PAUSED,
+                  ampris2.PlaybackStatus.STOPPED)
+
 
 class DiscordMpris:
 
@@ -57,7 +61,7 @@ class DiscordMpris:
                 self.last_activity = None
             return
         # store for future prioritization
-        logger.info(f"Selected player bus {player.name}")
+        logger.info(f"Selected player bus {player.name!r}")
         self.active_player = player
 
         activity: JSON = {}
@@ -107,7 +111,7 @@ class DiscordMpris:
             await self.discord.set_activity(activity)
             self.last_activity = activity
 
-    async def find_active_player(self) -> Player:
+    async def find_active_player(self) -> Optional[Player]:
         active_player = self.active_player
         players = await self.mpris.get_players()
 
@@ -118,24 +122,28 @@ class DiscordMpris:
                     active_player = p
                     break
             else:
+                logging.info(f"Player {p.name!r} lost")
                 active_player = None
 
         groups = await self.group_players(players)
+        if logger.isEnabledFor(logging.DEBUG):
+            for state, group in zip(STATE_PRIORITY, groups):
+                logger.debug("%s: %s", state, ", ".join(p.name for p in group))
+
         # Prioritize last active player per group,
         # but don't check stopped players.
         # We only want a stopped player
         # if it was the active one before.
         for group in groups[:2]:
             for p in group:
-                if p is self.active_player:
-                    active_player = p
-                    break
+                if p is active_player:
+                    return p
             else:
-                # just pick a random one, if available
                 if group:
-                    active_player = p
+                    # just pick a random one
+                    return p
 
-        return active_player
+        return active_player  # no playing or paused player found
 
     def build_replacements(self, player: Player, metadata) -> Dict[str, Optional[str]]:
         replacements = metadata.copy()
@@ -159,13 +167,10 @@ class DiscordMpris:
     @staticmethod
     async def group_players(players: Iterable[Player]
                             ) -> List[List[ampris2.PlayerInterfaces]]:
-        priority = (ampris2.PlaybackStatus.PLAYING,
-                    ampris2.PlaybackStatus.PAUSED,
-                    ampris2.PlaybackStatus.STOPPED)
         groups: List[List[ampris2.PlayerInterfaces]] = [[], [], []]
         for p in players:
             state = ampris2.PlaybackStatus(await p.player.PlaybackStatus)
-            i = priority.index(state)
+            i = STATE_PRIORITY.index(state)
             groups[i].append(p)
 
         return groups
