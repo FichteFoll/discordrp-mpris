@@ -125,7 +125,7 @@ class DiscordMpris:
         # but don't check stopped players.
         # We only want a stopped player
         # if it was the active one before.
-        for group in groups[:1]:
+        for group in groups[:2]:
             for p in group:
                 if p is self.active_player:
                     active_player = p
