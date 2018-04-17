@@ -23,7 +23,7 @@ Player = ampris2.PlayerInterfaces
 class DiscordMpris:
 
     active_player: Optional[Player] = None
-    has_activity = False
+    last_activity: Optional[JSON] = None
 
     def __init__(self, mpris: ampris2.Mpris2Dbussy, discord: AsyncDiscordRpc) -> None:
         self.mpris = mpris
@@ -52,9 +52,9 @@ class DiscordMpris:
     async def tick(self) -> None:
         player = await self.find_active_player()
         if not player:
-            if self.has_activity:
+            if self.last_activity:
                 await self.discord.clear_activity()
-                self.has_activity = False
+                self.last_activity = None
             return
         # store for future prioritization
         logger.info(f"Selected player bus {player.name}")
@@ -83,7 +83,7 @@ class DiscordMpris:
         # set state and timestamps
         activity['timestamps'] = {}
         if state == ampris2.PlaybackStatus.PLAYING:
-            start_time = time.time() - position / 1e6
+            start_time = int(time.time() - position / 1e6)
             activity['timestamps']['start'] = start_time
             # end_time = start_time + (length / 1e6)
             # activity['timestamps']['end'] = end_time
@@ -103,8 +103,9 @@ class DiscordMpris:
             activity['assets'] = {'large_text': f"{identity} ({state})",
                                   'large_image': state.lower()}
 
-        await self.discord.set_activity(activity)
-        self.has_activity = True
+        if activity != self.last_activity:
+            await self.discord.set_activity(activity)
+            self.last_activity = activity
 
     async def find_active_player(self) -> Player:
         active_player = self.active_player
