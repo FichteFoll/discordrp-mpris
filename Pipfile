@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+adbus = {git = "https://github.com/ccxtechnologies/adbus", editable = true}
+debussy = {git = "https://github.com/ldo/dbussy", editable = true}
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
