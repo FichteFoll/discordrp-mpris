@@ -28,7 +28,7 @@ Requirements:
 
 ### Recommended
 
-- **Arch Linux**: TBA
+- **Arch Linux**: [AUR](https://aur.archlinux.org/packages/discordrp-mpris-git/)
 
 ```sh
 systemctl --user enable discordrp-mpris.service --now
