@@ -43,15 +43,13 @@ setup(
         # 'Topic :: System',
     ],
     keywords=["discord", "discord rich presence", "mpris2", "dbus", "mpd", "mpv", "vlc"],
-    # dbussy isn't on pypi currently.
-    # install_requires=["dbussy"],
-    # dependency_links=["https://github.com/ldo/dbussy"],
-    package_data={
-        "discordrp_mpris": ["discordrp-mpris.service", "README*"],
-    },
     entry_points={
         'console_scripts': [
             "discordrp-mpris=discordrp_mpris.__main__:main",
         ],
     },
+    # dbussy isn't on pypi currently.
+    # install_requires=["dbussy"],
+    # dependency_links=["https://github.com/ldo/dbussy"],
+    python_requires=">=3.6",
 )
