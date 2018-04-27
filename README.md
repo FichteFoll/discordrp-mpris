@@ -1,5 +1,9 @@
 # Discord Rich Presence through mpris
 
+| User Modal          | Popout Modal          |
+| ------------------- | --------------------- |
+| ![][img-user-modal] | ![][img-popout-modal] |
+
 discordrp-mpris provides Rich Presence to Discord clients
 based on music or other media that you are playing
 and that is exposed through the [mpris2][] D-Bus interface.
@@ -80,6 +84,11 @@ the playback state is used as the large icon.
 
 None currently.
 
+
+<!-- Resources -->
+
+[img-user-modal]: https://user-images.githubusercontent.com/931051/39368449-e0da4afa-4a39-11e8-8909-2d3b2383ad9f.png
+[img-popout-modal]: https://user-images.githubusercontent.com/931051/39368450-e0fb03da-4a39-11e8-8fc3-d6910f097243.png
 
 <!-- Links -->
 
