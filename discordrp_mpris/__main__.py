@@ -76,10 +76,10 @@ class DiscordMpris:
         activity: JSON = {}
         metadata, position, identity, state = \
             await asyncio.gather(
-                player.player.Metadata,
-                player.player.Position,
-                player.root.Identity,
-                player.player.PlaybackStatus,
+                player.player.Metadata,  # type: ignore
+                player.player.Position,  # type: ignore
+                player.root.Identity,  # type: ignore
+                player.player.PlaybackStatus,  # type: ignore
             )
         metadata = ampris2.unwrap_metadata(metadata)
         length = metadata.get('mpris:length', 0)
@@ -185,7 +185,7 @@ class DiscordMpris:
                             ) -> List[List[ampris2.PlayerInterfaces]]:
         groups: List[List[ampris2.PlayerInterfaces]] = [[], [], []]
         for p in players:
-            state = ampris2.PlaybackStatus(await p.player.PlaybackStatus)
+            state = ampris2.PlaybackStatus(await p.player.PlaybackStatus)  # type: ignore
             i = STATE_PRIORITY.index(state)
             groups[i].append(p)
 
