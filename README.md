@@ -3,7 +3,7 @@
 discordrp-mpris provides Rich Presence to Discord clients
 based on music or other media that you are playing
 and that is exposed through the [mpris2][] D-Bus interface.
-Thus, it only works on syntems where D-Bus is available
+Thus, it only works on systems where D-Bus is available
 and *not* on Windows.
 
 discordrp-mpris is intended to run in the background
@@ -20,24 +20,41 @@ but could be improved.
 Notably, configuration is missing.
 
 
-## Installation
+## Installation & Usage
 
 Requirements:
 
 - Python 3.6
-- [pipenv][]
+
+### Recommended
+
+- **Arch Linux**: TBA
+
+```sh
+systemctl --user enable discordrp-mpris.service --now
+```
+
+### pipenv
+
+Requires [pipenv][].
 
 ```sh
 git clone https://github.com/FichteFoll/discordrp-mpris
 cd discordrp-mpris
 pipenv install
+
+# Usage
+pipenv run python -m discordrp-mpris
 ```
 
-
-## Usage
+### Manually
 
 ```sh
-pipenv run python -m discordrp-mpris
+pip install https://github.com/ldo/dbussy
+pip install https://github.com/FichteFoll/discordrp-mpris
+
+# Usage
+discordrp-mpris
 ```
 
 
@@ -58,6 +75,10 @@ Icons are available for:
 
 When no player icon is available,
 the playback state is used as the large icon.
+
+## Configuration
+
+None currently.
 
 
 <!-- Links -->

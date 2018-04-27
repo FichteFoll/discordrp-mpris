@@ -1,0 +1,4 @@
+# Include the README
+include README.md
+include LICENSE
+global-include *.service
