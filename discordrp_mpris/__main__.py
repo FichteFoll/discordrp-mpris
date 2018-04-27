@@ -14,8 +14,8 @@ PLAYER_ICONS = {'Music Player Daemon': 'mpd',
                 'VLC media player': 'vlc'}
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
-# logger.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.DEBUG)
 
 Player = ampris2.PlayerInterfaces
 
