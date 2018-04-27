@@ -15,9 +15,6 @@ loop = asyncio.get_event_loop()
 
 async def async_main():
     mpris = await Mpris2Dbussy.create()
-    names = await mpris.get_player_names()
-    print(names)
-
     players = await mpris.get_players()
     print("Found players: " + ", ".join(p.name for p in players))
 
