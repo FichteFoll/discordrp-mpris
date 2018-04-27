@@ -138,8 +138,8 @@ class DiscordMpris:
                     active_player = p
                     break
             else:
-                logging.info(f"Player {p.name!r} lost")
-                active_player = None
+                logger.info(f"Player {active_player.name!r} lost")
+                self.active_player = active_player = None
 
         groups = await self.group_players(players)
         if logger.isEnabledFor(logging.DEBUG):
