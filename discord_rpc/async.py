@@ -124,7 +124,8 @@ class AsyncDiscordRpc(metaclass=ABCMeta):
         return self
 
     async def __aexit__(self, *_) -> None:
-        await self.close()
+        if self.connected:
+            await self.close()
 
     async def send_recv(self, data: JSON, *, op=OP_FRAME) -> Reply:
         nonce = data.get('nonce')
