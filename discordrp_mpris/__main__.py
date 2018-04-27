@@ -91,7 +91,12 @@ class DiscordMpris:
         replacements['state'] = state
 
         # TODO pref
-        activity['details'] = self.format_details("{title} by {artist}", replacements)
+        if replacements['artist']:
+            # details_fmt = "{artist} - {title}"
+            details_fmt = "{title}\nby {artist}"
+        else:
+            details_fmt = "{title}"
+        activity['details'] = self.format_details(details_fmt, replacements)
 
         # set state and timestamps
         activity['timestamps'] = {}
