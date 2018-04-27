@@ -36,21 +36,29 @@ class DiscordMpris:
     async def connect_discord(self):
         if self.discord.connected:
             return
+        logger.debug("Trying to connect to Discord client...")
         while True:
             try:
                 await self.discord.connect()
             except DiscordRpcError:
-                logger.debug("Failed to connect to discord client")
+                logger.debug("Failed to connect to Discord client")
                 await asyncio.sleep(1)
-                continue
+            except asyncio.streams.IncompleteReadError:
+                logger.debug("Connection to Discord lost")
+                await asyncio.sleep(1)
             else:
-                break
+                logger.info("Connected to Discord client")
+                return
 
     async def run(self):
         await self.connect_discord()
 
         while True:
-            await self.tick()
+            try:
+                await self.tick()
+            except (ConnectionResetError, BrokenPipeError):
+                logger.info("Connection to Discord client lost. Reconnecting...")
+                await self.connect_discord()
             await asyncio.sleep(10)  # TODO make configurable
 
     async def tick(self) -> None:
@@ -61,7 +69,8 @@ class DiscordMpris:
                 self.last_activity = None
             return
         # store for future prioritization
-        logger.info(f"Selected player bus {player.name!r}")
+        if not self.active_player or self.active_player.name != player.name:
+            logger.info(f"Selected player bus {player.name!r}")
         self.active_player = player
 
         activity: JSON = {}
@@ -110,6 +119,8 @@ class DiscordMpris:
         if activity != self.last_activity:
             await self.discord.set_activity(activity)
             self.last_activity = activity
+        else:
+            logger.debug("Not sending activity because it didn't change")
 
     async def find_active_player(self) -> Optional[Player]:
         active_player = self.active_player
