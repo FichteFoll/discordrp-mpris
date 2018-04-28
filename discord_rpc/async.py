@@ -7,6 +7,7 @@
 
 from abc import ABCMeta, abstractmethod
 import asyncio
+from functools import wraps
 import json
 import logging
 import os
@@ -26,6 +27,9 @@ JSON = Dict[str, Any]
 Reply = Tuple[int, JSON]
 
 logger = logging.getLogger(__name__)
+
+# commonly thrown exceptions when connection is lost
+exceptions = (ConnectionResetError, BrokenPipeError, asyncio.streams.IncompleteReadError)
 
 
 class DiscordRpcError(Exception):
@@ -181,7 +185,7 @@ class UnixAsyncDiscordRpc(AsyncDiscordRpc):
 
     @property
     def connected(self):
-        return self.reader and self.reader.at_eof()
+        return self.reader and not self.reader.at_eof()
 
     async def _connect(self) -> None:
         pipe_pattern = self._get_pipe_pattern()
@@ -210,16 +214,30 @@ class UnixAsyncDiscordRpc(AsyncDiscordRpc):
             dir_path = '/tmp'
         return os.path.join(dir_path, 'discord-ipc-{}')
 
+    def _disconnect_on_error(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except exceptions:
+                self.reader.feed_eof()
+                raise
+        return wrapper
+
+    @_disconnect_on_error
     async def _write(self, data: bytes) -> None:
         self.writer.write(data)
-        # await self.writer.drain()  # shouldn't be necessary
+        # await self.writer.drain()  # exception will be caught in _recv_exactly
 
+    @_disconnect_on_error
     async def _recv(self, size: int) -> bytes:
         return await self.reader.read(size)
 
+    @_disconnect_on_error
     async def _recv_exactly(self, size: int) -> bytes:
         return await self.reader.readexactly(size)
 
     async def _close(self) -> None:
+        self.reader.feed_eof()
         self.writer.write_eof()
         await self.writer.drain()

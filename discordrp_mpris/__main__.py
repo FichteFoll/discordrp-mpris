@@ -6,7 +6,8 @@ from typing import Dict, Iterable, List, Optional
 
 import ampris2
 # from ampris2 import Mpris2Dbussy, PlayerInterfaces, PlaybackStatus
-from discord_rpc.async import AsyncDiscordRpc, DiscordRpcError, JSON
+from discord_rpc.async import (AsyncDiscordRpc, DiscordRpcError, JSON,
+                               exceptions as async_exceptions)
 
 CLIENT_ID = '435587535150907392'
 PLAYER_ICONS = {'Music Player Daemon': 'mpd',
@@ -56,7 +57,10 @@ class DiscordMpris:
         while True:
             try:
                 await self.tick()
-            except (ConnectionResetError, BrokenPipeError, asyncio.streams.IncompleteReadError):
+            except async_exceptions:
+                # TODO print exception in debug mode
+                # import traceback
+                # traceback.print_exc()
                 logger.info("Connection to Discord client lost. Reconnecting...")
                 await self.connect_discord()
             await asyncio.sleep(10)  # TODO make configurable
