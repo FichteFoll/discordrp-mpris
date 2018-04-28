@@ -56,7 +56,7 @@ class DiscordMpris:
         while True:
             try:
                 await self.tick()
-            except (ConnectionResetError, BrokenPipeError):
+            except (ConnectionResetError, BrokenPipeError, asyncio.streams.IncompleteReadError):
                 logger.info("Connection to Discord client lost. Reconnecting...")
                 await self.connect_discord()
             await asyncio.sleep(10)  # TODO make configurable
