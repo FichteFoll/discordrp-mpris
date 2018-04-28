@@ -43,7 +43,7 @@ class DiscordRpc(metaclass=ABCMeta):
         self.client_id = client_id
         self._connect()
         self._do_handshake()
-        logger.info("connected via ID %s", client_id)
+        # logger.debug("connected via ID %s", client_id)
 
     @classmethod
     def for_platform(cls, client_id, platform=sys.platform):

@@ -57,7 +57,7 @@ class AsyncDiscordRpc(metaclass=ABCMeta):
     async def connect(self):
         await self._connect()
         await self._do_handshake()
-        logger.info("connected via ID %s", self.client_id)
+        # logger.debug("connected via ID %s", self.client_id)
 
     @classmethod
     def for_platform(cls, client_id: str, platform=sys.platform, *,
