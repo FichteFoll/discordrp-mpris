@@ -48,8 +48,7 @@ setup(
             "discordrp-mpris=discordrp_mpris.__main__:main",
         ],
     },
-    # dbussy isn't on pypi currently.
-    # install_requires=["dbussy"],
+    install_requires=["dbussy"],
     # dependency_links=["https://github.com/ldo/dbussy"],
     python_requires=">=3.6",
 )

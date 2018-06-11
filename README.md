@@ -51,15 +51,16 @@ pipenv install
 pipenv run python -m discordrp-mpris
 ```
 
-### Manually
+### Manual
 
 ```sh
-pip install https://github.com/ldo/dbussy
 pip install https://github.com/FichteFoll/discordrp-mpris
 
 # Usage
 discordrp-mpris
 ```
+
+You might want to use `pip install --user`.
 
 
 ## Media Players

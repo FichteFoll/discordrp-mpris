@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "651367638c68f606288242fc459ef7e4d34c74e3494dc334b1a1c94fb5deac31"
+            "sha256": "e02a1eefca464475e739173405822cc8c963a2ef67bd52a820ed0615c570fdb4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -17,9 +17,11 @@
     },
     "default": {
         "dbussy": {
-            "editable": true,
-            "git": "https://github.com/ldo/dbussy",
-            "ref": "cc89ae8b3293d7089d8ba8d966f8c0efe5558f83"
+            "hashes": [
+                "sha256:ddb45284335daeb6d6b74863f661d52fce158e6596f0ebb7bcbc6dd4dd9432a5"
+            ],
+            "index": "pypi",
+            "version": "==1.1"
         }
     },
     "develop": {}
