@@ -6,6 +6,7 @@ from typing import Dict, Iterable, List, Optional
 
 import ampris2
 # from ampris2 import Mpris2Dbussy, PlayerInterfaces, PlaybackStatus
+import dbussy
 from discord_rpc.async import (AsyncDiscordRpc, DiscordRpcError, JSON,
                                exceptions as async_exceptions)
 
@@ -44,7 +45,7 @@ class DiscordMpris:
             except DiscordRpcError:
                 logger.debug("Failed to connect to Discord client")
                 await asyncio.sleep(1)
-            except asyncio.streams.IncompleteReadError:
+            except async_exceptions:
                 logger.debug("Connection to Discord lost")
                 await asyncio.sleep(1)
             else:
@@ -63,6 +64,11 @@ class DiscordMpris:
                 # traceback.print_exc()
                 logger.info("Connection to Discord client lost. Reconnecting...")
                 await self.connect_discord()
+            except dbussy.DbusError as e:
+                if e.name == "org.freedesktop.DBus.Error.ServiceUnknown":
+                    # bus probably terminated during tick
+                    continue
+                raise
             await asyncio.sleep(10)  # TODO make configurable
 
     async def tick(self) -> None:
