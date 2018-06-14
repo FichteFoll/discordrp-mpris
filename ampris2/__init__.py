@@ -12,6 +12,10 @@ ProxyInterface = ravel.BusPeer.Object.ProxyInterface  # type alias
 logger = logging.getLogger(__name__)
 
 
+class Mpris2Error(Exception):
+    pass
+
+
 class PlayerInterfaces(NamedTuple):
     bus_name: str
     name: str
@@ -94,7 +98,10 @@ class Mpris2Dbussy():
                     result = None
             args.append(result)
 
-        name = await args[0].Identity  # player.root.Identity
+        try:
+            name = await args[0].Identity  # player.root.Identity
+        except AttributeError:
+            raise Mpris2Error(f"Player {bus_name!r} doesn't advertise properties") from None
         return PlayerInterfaces(bus_name, name, *args)
 
     async def get_players(self):
@@ -102,6 +109,8 @@ class Mpris2Dbussy():
         for bus_name in await self.get_player_names():
             try:
                 result_list.append(await self.get_player_ifaces(bus_name))
+            except Mpris2Error as e:
+                logger.error(e.args[0])
             except dbussy.DBusError as e:
                 logger.error(f"Unable to fetch interfaces for player {bus_name!r} - {e!s}")
                 continue
