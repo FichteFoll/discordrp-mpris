@@ -91,8 +91,8 @@ The following players are **not** supported:
 ## Configuration
 
 Configuration may be provided in a `config.toml` file
-using the [TOML][] format.
-It may be located in `$XDG_CONFIG_HOME/discordrp-mpris`
+using the [TOML][] format
+and located in the folders `$XDG_CONFIG_HOME/discordrp-mpris`
 or `$HOME/.config/discordrp-mpris`.
 
 For available options, see the [default `config.toml`][default-config].
