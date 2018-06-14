@@ -83,7 +83,12 @@ the playback state is used as the large icon.
 
 ## Configuration
 
-None currently.
+Configuration may be provided in a `config.toml` file
+using the [TOML][] format.
+It may be located in `$XDG_CONFIG_HOME/discordrp-mpris`
+or `$HOME/.config/discordrp-mpris`.
+
+For available options, see the [default `config.toml`][default-config].
 
 
 <!-- Resources -->
@@ -101,3 +106,5 @@ None currently.
 [mpv]: https://mpv.io/
 [mpv-mpris]: https://github.com/hoyon/mpv-mpris
 [vlc]: https://www.videolan.org/vlc/
+[TOML]: https://github.com/toml-lang/toml
+[default-config]: config/config.toml
