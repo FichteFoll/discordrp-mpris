@@ -7,7 +7,7 @@ import pytoml
 
 from ampris2 import PlayerInterfaces as Player
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 default_file = Path(__file__).parent / "config.toml"
 
