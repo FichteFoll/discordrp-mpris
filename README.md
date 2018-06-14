@@ -38,6 +38,17 @@ Requirements:
 systemctl --user enable discordrp-mpris.service --now
 ```
 
+### Manual
+
+```sh
+pip install https://github.com/FichteFoll/discordrp-mpris
+
+# Usage
+discordrp-mpris
+```
+
+You might also want to use `pip install --user`.
+
 ### pipenv
 
 Requires [pipenv][].
@@ -50,17 +61,6 @@ pipenv install
 # Usage
 pipenv run python -m discordrp-mpris
 ```
-
-### Manual
-
-```sh
-pip install https://github.com/FichteFoll/discordrp-mpris
-
-# Usage
-discordrp-mpris
-```
-
-You might want to use `pip install --user`.
 
 
 ## Media Players
