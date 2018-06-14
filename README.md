@@ -19,9 +19,7 @@ The most recently active player will then be followed
 until it is no longer playing
 and a different player starts playback.
 
-The code works for now,
-but could be improved.
-Notably, configuration is missing.
+This project is in *beta* stage.
 
 
 ## Installation & Usage
