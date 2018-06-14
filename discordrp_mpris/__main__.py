@@ -78,9 +78,12 @@ class DiscordMpris:
     async def tick(self) -> None:
         player = await self.find_active_player()
         if not player:
+            if self.active_player:
+                logger.info(f"Player {self.active_player.bus_name!r} unselected")
             if self.last_activity:
                 await self.discord.clear_activity()
                 self.last_activity = None
+            self.active_player = None
             return
         # store for future prioritization
         if not self.active_player or self.active_player.bus_name != player.bus_name:
