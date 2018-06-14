@@ -1,0 +1,11 @@
+# The following can be overridden per player.
+[options]
+# Whether to ignore a player. Supposed to be overridden.
+ignore = false
+
+# You can override any of the [options] options
+# for each player individually.
+# The player name to use as the key
+# is shown in your Discord Rich Presence (hover the icons).
+[player.Spotify]
+ignore = true

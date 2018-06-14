@@ -3,12 +3,12 @@ import logging
 import time
 from typing import Dict, Iterable, List, Optional
 
-
 import ampris2
-# from ampris2 import Mpris2Dbussy, PlayerInterfaces, PlaybackStatus
 import dbussy
 from discord_rpc.async import (AsyncDiscordRpc, DiscordRpcError, JSON,
                                exceptions as async_exceptions)
+
+from .config import Config
 
 CLIENT_ID = '435587535150907392'
 PLAYER_ICONS = {'Music Player Daemon': 'mpd',
@@ -31,9 +31,11 @@ class DiscordMpris:
     active_player: Optional[Player] = None
     last_activity: Optional[JSON] = None
 
-    def __init__(self, mpris: ampris2.Mpris2Dbussy, discord: AsyncDiscordRpc) -> None:
+    def __init__(self, mpris: ampris2.Mpris2Dbussy, discord: AsyncDiscordRpc, config: Config,
+                 ) -> None:
         self.mpris = mpris
         self.discord = discord
+        self.config = config
 
     async def connect_discord(self):
         if self.discord.connected:
@@ -79,16 +81,15 @@ class DiscordMpris:
                 self.last_activity = None
             return
         # store for future prioritization
-        if not self.active_player or self.active_player.name != player.name:
-            logger.info(f"Selected player bus {player.name!r}")
+        if not self.active_player or self.active_player.bus_name != player.bus_name:
+            logger.info(f"Selected player bus {player.bus_name!r}")
         self.active_player = player
 
         activity: JSON = {}
-        metadata, position, identity, state = \
+        metadata, position, state = \
             await asyncio.gather(
                 player.player.Metadata,  # type: ignore
                 player.player.Position,  # type: ignore
-                player.root.Identity,  # type: ignore
                 player.player.PlaybackStatus,  # type: ignore
             )
         metadata = ampris2.unwrap_metadata(metadata)
@@ -97,7 +98,7 @@ class DiscordMpris:
         replacements = self.build_replacements(player, metadata)
         replacements['position'] = self.format_timestamp(position)
         replacements['length'] = self.format_timestamp(length)
-        replacements['player'] = identity
+        replacements['player'] = player.name
         replacements['state'] = state
 
         # TODO pref
@@ -122,13 +123,13 @@ class DiscordMpris:
             activity['state'] = self.format_details("{state}", replacements)
 
         # set icons and hover texts
-        if identity in PLAYER_ICONS:
-            activity['assets'] = {'large_text': identity,
-                                  'large_image': PLAYER_ICONS[identity],
+        if player.name in PLAYER_ICONS:
+            activity['assets'] = {'large_text': player.name,
+                                  'large_image': PLAYER_ICONS[player.name],
                                   'small_image': state.lower(),
                                   'small_text': state}
         else:
-            activity['assets'] = {'large_text': f"{identity} ({state})",
+            activity['assets'] = {'large_text': f"{player.name} ({state})",
                                   'large_image': state.lower()}
 
         if activity != self.last_activity:
@@ -144,17 +145,18 @@ class DiscordMpris:
         # refresh active player (in case it restarted or sth)
         if active_player:
             for p in players:
-                if p.name == self.active_player.name:
+                if p.bus_name == self.active_player.bus_name:
                     active_player = p
                     break
             else:
-                logger.info(f"Player {active_player.name!r} lost")
+                logger.info(f"Player {active_player.bus_name!r} lost")
                 self.active_player = active_player = None
 
         groups = await self.group_players(players)
         if logger.isEnabledFor(logging.DEBUG):
-            for state, group in zip(STATE_PRIORITY, groups):
-                logger.debug("%s: %s", state, ", ".join(p.name for p in group))
+            debug_list = [(state, ", ".join(p.bus_name for p in group))
+                          for state, group in zip(STATE_PRIORITY, groups)]
+            logger.debug(f"found players: {debug_list}")
 
         # Prioritize last active player per group,
         # but don't check stopped players.
@@ -165,11 +167,15 @@ class DiscordMpris:
                 if p is active_player:
                     return p
             else:
-                if group:
-                    # just pick a random one
-                    return p
+                # just pick a random valid one
+                maybe_player = next(filter(self._is_valid_player, group), None)
+                if maybe_player:
+                    return maybe_player
 
         return active_player  # no playing or paused player found
+
+    def _is_valid_player(self, player: Player) -> bool:
+        return not self.config.player_get(player.name, "ignore", False)
 
     def build_replacements(self, player: Player, metadata) -> Dict[str, Optional[str]]:
         replacements = metadata.copy()
@@ -218,23 +224,21 @@ class DiscordMpris:
         return template.format(**replacements)
 
 
-async def main_async():
-    loop = asyncio.get_event_loop()
-    # this should generally succeed, so do it first
-    mpris = await ampris2.Mpris2Dbussy.create(loop=loop)
+async def main_async(loop: asyncio.AbstractEventLoop):
+    config = Config.load()
+    # TODO validate?
 
+    mpris = await ampris2.Mpris2Dbussy.create(loop=loop)
     async with AsyncDiscordRpc.for_platform(CLIENT_ID) as discord:
-        instance = DiscordMpris(mpris, discord)
+        instance = DiscordMpris(mpris, discord, config)
         await instance.run()
 
 
 def main():
-    # discord =
     loop = asyncio.get_event_loop()
-    main_task = loop.create_task(main_async())
+    main_task = loop.create_task(main_async(loop))
     try:
         loop.run_until_complete(main_task)
-    # except KeyboardInterrupt:
     except BaseException as e:
         main_task.cancel()
         wait_task = asyncio.wait_for(main_task, 5, loop=loop)

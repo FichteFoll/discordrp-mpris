@@ -42,11 +42,16 @@ setup(
         'Topic :: Communications :: Chat :: Discord',  # not in the list above
         # 'Topic :: System',
     ],
-    keywords=["discord", "discord rich presence", "mpris2", "dbus", "mpd", "mpv", "vlc"],
+    keywords=["discord", "discord rich presence", "mpris2", "media", "dbus", "mpd", "mpv", "vlc"],
     entry_points={
         'console_scripts': [
             "discordrp-mpris=discordrp_mpris.__main__:main",
         ],
+    },
+    package_data={
+        'discordrp-mpris': [
+            "config/config.toml",
+        ]
     },
     install_requires=["dbussy"],
     # dependency_links=["https://github.com/ldo/dbussy"],
