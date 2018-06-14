@@ -49,8 +49,8 @@ setup(
         ],
     },
     package_data={
-        'discordrp-mpris': [
-            "config/config.toml",
+        'discordrp_mpris.config': [
+            "config.toml",
         ]
     },
     install_requires=["dbussy"],
