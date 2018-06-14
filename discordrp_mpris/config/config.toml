@@ -1,6 +1,8 @@
 [global]
 # Enable debug level logging
 debug = false
+poll_interval = 5
+reconnect_wait = 1
 
 # The following can be overridden per player.
 [options]

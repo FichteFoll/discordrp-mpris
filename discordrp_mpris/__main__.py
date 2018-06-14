@@ -46,13 +46,12 @@ class DiscordMpris:
                 await self.discord.connect()
             except DiscordRpcError:
                 logger.debug("Failed to connect to Discord client")
-                await asyncio.sleep(1)
             except async_exceptions:
                 logger.debug("Connection to Discord lost")
-                await asyncio.sleep(1)
             else:
                 logger.info("Connected to Discord client")
                 return
+            await asyncio.sleep(self.config.raw_get('global.reconnect_wait', 1))
 
     async def run(self) -> int:
         await self.connect_discord()
@@ -74,7 +73,7 @@ class DiscordMpris:
                 logger.exception("Unknown DBusError encountered during tick", exc_info=e)
                 return 1  # TODO for now, this is unrecoverable
 
-            await asyncio.sleep(10)  # TODO make configurable
+            await asyncio.sleep(self.config.raw_get('global.poll_interval', 5))
 
     async def tick(self) -> None:
         player = await self.find_active_player()
