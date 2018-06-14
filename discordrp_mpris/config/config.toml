@@ -6,6 +6,10 @@ reconnect_wait = 1
 
 # The following can be overridden per player.
 [options]
+# Whether to show status for paused players.
+show_paused = true
+# Whether to show status for previously active and now stopped player.
+show_stopped = false
 # Whether to ignore a player. Supposed to be overridden.
 ignore = false
 

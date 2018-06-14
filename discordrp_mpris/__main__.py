@@ -164,20 +164,30 @@ class DiscordMpris:
         # but don't check stopped players.
         # We only want a stopped player
         # if it was the active one before.
-        for group in groups[:2]:
+        for state, group in zip(STATE_PRIORITY, groups[:2]):
+            candidates: List[Player] = []
             for p in group:
                 if p is active_player:
-                    return p
-            else:
-                # just pick a random valid one
-                maybe_player = next(filter(self._is_valid_player, group), None)
-                if maybe_player:
-                    return maybe_player
+                    candidates.insert(0, p)
+                else:
+                    candidates.append(p)
 
-        return active_player  # no playing or paused player found
+            for player in group:
+                if (
+                    not self.config.player_get(player, "ignore", False)
+                    and (state == ampris2.PlaybackStatus.PLAYING
+                         or self.config.player_get(player, 'show_paused', True))
+                ):
+                    return player
 
-    def _is_valid_player(self, player: Player) -> bool:
-        return not self.config.player_get(player.name, "ignore", False)
+        # no playing or paused player found
+        if active_player and self.config.player_get(active_player, 'show_stopped', False):
+            return active_player
+        else:
+            return None
+
+    def _player_not_ignored(self, player: Player) -> bool:
+        return (not self.config.player_get(player, "ignore", False))
 
     def build_replacements(self, player: Player, metadata) -> Dict[str, Optional[str]]:
         replacements = metadata.copy()

@@ -5,6 +5,8 @@ from typing import Any, Dict, Optional
 
 import pytoml
 
+from ampris2 import PlayerInterfaces as Player
+
 logger = logging.getLogger(__file__)
 
 default_file = Path(__file__).parent / "config.toml"
@@ -31,9 +33,9 @@ class Config:
     def get(self, key: str, default: Any = None) -> Any:
         return self.raw_get(f"options.{key}", default)
 
-    def player_get(self, name: str, key: str, default: Any = None) -> Any:
+    def player_get(self, player: Player, key: str, default: Any = None) -> Any:
         base = self.get(key, default)
-        return self.raw_get(f"player.{name}.{key}", base)
+        return self.raw_get(f"player.{player.name}.{key}", base)
 
     @classmethod
     def load(cls) -> 'Config':
