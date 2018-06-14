@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 import time
 from typing import Dict, Iterable, List, Optional
 
@@ -53,23 +54,26 @@ class DiscordMpris:
                 logger.info("Connected to Discord client")
                 return
 
-    async def run(self):
+    async def run(self) -> int:
         await self.connect_discord()
 
         while True:
             try:
                 await self.tick()
-            except async_exceptions:
-                # TODO print exception in debug mode
-                # import traceback
-                # traceback.print_exc()
+
+            except async_exceptions as e:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Connection error during tick", exc_info=e)
                 logger.info("Connection to Discord client lost. Reconnecting...")
                 await self.connect_discord()
+
             except dbussy.DbusError as e:
                 if e.name == "org.freedesktop.DBus.Error.ServiceUnknown":
                     # bus probably terminated during tick
                     continue
-                raise
+                logger.exception("Unknown DBusError encountered during tick", exc_info=e)
+                return 1  # TODO for now, this is unrecoverable
+
             await asyncio.sleep(10)  # TODO make configurable
 
     async def tick(self) -> None:
@@ -233,14 +237,14 @@ async def main_async(loop: asyncio.AbstractEventLoop):
     mpris = await ampris2.Mpris2Dbussy.create(loop=loop)
     async with AsyncDiscordRpc.for_platform(CLIENT_ID) as discord:
         instance = DiscordMpris(mpris, discord, config)
-        await instance.run()
+        return await instance.run()
 
 
-def main():
+def main() -> int:
     loop = asyncio.get_event_loop()
     main_task = loop.create_task(main_async(loop))
     try:
-        loop.run_until_complete(main_task)
+        return loop.run_until_complete(main_task)
     except BaseException as e:
         main_task.cancel()
         wait_task = asyncio.wait_for(main_task, 5, loop=loop)
@@ -252,8 +256,11 @@ def main():
             logger.error("Task didn't terminate within the set timeout")
 
         if isinstance(e, Exception):
-            raise
+            logger.exception("Unknown exception", exc_info=e)
+            return 1
+
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
