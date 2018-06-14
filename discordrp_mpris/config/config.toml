@@ -10,6 +10,8 @@ reconnect_wait = 1
 show_paused = true
 # Whether to show status for previously active and now stopped player.
 show_stopped = false
+# Available values are: "elapsed", "remaining" or "none".
+show_time = "elapsed"
 # Whether to ignore a player. Supposed to be overridden.
 ignore = false
 

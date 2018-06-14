@@ -114,10 +114,13 @@ class DiscordMpris:
         # set state and timestamps
         activity['timestamps'] = {}
         if state == ampris2.PlaybackStatus.PLAYING:
+            show_time = self.config.player_get(player, 'show_time', 'elapsed')
             start_time = int(time.time() - position / 1e6)
-            activity['timestamps']['start'] = start_time
-            # end_time = start_time + (length / 1e6)
-            # activity['timestamps']['end'] = end_time
+            if show_time == 'elapsed':
+                activity['timestamps']['start'] = start_time
+            elif show_time == 'remaining':
+                end_time = start_time + (length / 1e6)
+                activity['timestamps']['end'] = end_time
             activity['state'] = self.format_details("{state} [{length}]", replacements)
         elif state == ampris2.PlaybackStatus.PAUSED:
             activity['state'] = self.format_details("{state} [{position}/{length}]", replacements)
