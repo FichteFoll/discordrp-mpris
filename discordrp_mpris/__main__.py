@@ -66,7 +66,7 @@ class DiscordMpris:
                 logger.info("Connection to Discord client lost. Reconnecting...")
                 await self.connect_discord()
 
-            except dbussy.DbusError as e:
+            except dbussy.DBusError as e:
                 if e.name == "org.freedesktop.DBus.Error.ServiceUnknown":
                     # bus probably terminated during tick
                     continue
@@ -238,7 +238,7 @@ class DiscordMpris:
         return string
 
     @staticmethod
-    def format_details(template: str, replacements: Dict[str, str]) -> str:
+    def format_details(template: str, replacements: Dict[str, Optional[str]]) -> str:
         return template.format(**replacements)
 
 
