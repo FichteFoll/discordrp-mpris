@@ -115,4 +115,4 @@ For available options, see the [default `config.toml`][default-config].
 [vlc]: https://www.videolan.org/vlc/
 [mps-youtube]: https://github.com/mps-youtube/mps-youtube
 [TOML]: https://github.com/toml-lang/toml
-[default-config]: config/config.toml
+[default-config]: discordrp_mpris/config/config.toml
