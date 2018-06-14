@@ -17,9 +17,8 @@ PLAYER_ICONS = {'Music Player Daemon': 'mpd',
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-# logging.basicConfig(level=logging.DEBUG)
 
-Player = ampris2.PlayerInterfaces
+Player = ampris2.PlayerInterfaces  # type alias
 
 STATE_PRIORITY = (ampris2.PlaybackStatus.PLAYING,
                   ampris2.PlaybackStatus.PAUSED,
@@ -227,6 +226,9 @@ class DiscordMpris:
 async def main_async(loop: asyncio.AbstractEventLoop):
     config = Config.load()
     # TODO validate?
+    if config.raw_get('global.debug', False):
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug(f"Config: {config.raw_config}")
 
     mpris = await ampris2.Mpris2Dbussy.create(loop=loop)
     async with AsyncDiscordRpc.for_platform(CLIENT_ID) as discord:

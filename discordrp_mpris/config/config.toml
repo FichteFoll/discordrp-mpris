@@ -1,3 +1,7 @@
+[global]
+# Enable debug level logging
+debug = false
+
 # The following can be overridden per player.
 [options]
 # Whether to ignore a player. Supposed to be overridden.
