@@ -81,6 +81,15 @@ Icons are available for:
 When no player icon is available,
 the playback state is used as the large icon.
 
+The following players are **not** supported:
+
+- Spotify
+  (conflicts with its own Rich Presence, #4)
+- [mps-youtube][]
+  (doesn't implement introspectable DBus properties,
+  mps-youtube/mps-youtube#839)
+
+
 ## Configuration
 
 Configuration may be provided in a `config.toml` file
@@ -106,5 +115,6 @@ For available options, see the [default `config.toml`][default-config].
 [mpv]: https://mpv.io/
 [mpv-mpris]: https://github.com/hoyon/mpv-mpris
 [vlc]: https://www.videolan.org/vlc/
+[mps-youtube]: https://github.com/mps-youtube/mps-youtube
 [TOML]: https://github.com/toml-lang/toml
 [default-config]: config/config.toml
