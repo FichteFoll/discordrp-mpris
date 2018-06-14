@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 dbussy = "*"
+pytoml = "*"
 
 [dev-packages]
 
