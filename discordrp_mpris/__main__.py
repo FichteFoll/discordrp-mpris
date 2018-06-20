@@ -12,10 +12,13 @@ from discord_rpc.async import (AsyncDiscordRpc, DiscordRpcError, JSON,
 from .config import Config
 
 CLIENT_ID = '435587535150907392'
-PLAYER_ICONS = {'Music Player Daemon': 'mpd',
-                'mpv': 'mpv',
-                'VLC media player': 'vlc',
-                'Media Player Classic Qute Theater': 'mpc-qt'}
+PLAYER_ICONS = {
+    'Clementine': 'clementine',
+    'Media Player Classic Qute Theater': 'mpc-qt',
+    'mpv': 'mpv',
+    'Music Player Daemon': 'mpd',
+    'VLC media player': 'vlc',
+}
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
