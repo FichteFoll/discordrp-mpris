@@ -66,6 +66,7 @@ pipenv run python -m discordrp-mpris
 The following media players are known to be supported:
 
 - [cmus][]
+- [Media Player Classic Qute Theater][mpc-qt] (newer than 18.03 or 2018-06-20)
 - [Media Player Daemon][mpd] (through [mpDris2][] - `master` branch)
 - [mpv][] (through [mpv-mpris][])
 - [VLC Media Player][vlc]
@@ -73,6 +74,7 @@ The following media players are known to be supported:
 Icons are available for:
 
 - Media Player Daemon
+- Media Player Classic Qute Theater
 - mpv
 - VLC Media Player
 
@@ -108,6 +110,7 @@ For available options, see the [default `config.toml`][default-config].
 [mpris2]: https://specifications.freedesktop.org/mpris-spec/2.2/
 [pipenv]: https://docs.pipenv.org/
 [cmus]: https://cmus.github.io/
+[mpc-qt]: https://github.com/cmdrkotori/mpc-qt
 [mpd]: https://musicpd.org/
 [mpDris2]: https://github.com/eonpatapon/mpDris2
 [mpv]: https://mpv.io/
