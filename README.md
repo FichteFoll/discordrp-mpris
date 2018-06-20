@@ -66,6 +66,9 @@ pipenv run python -m discordrp-mpris
 The following media players are known to be supported:
 
 - [cmus][]
+- KDE Plasma integration through:
+    - [Chrome addon][kde-chrome]
+    - [FireFox addon][kde-firefox]
 - [Media Player Classic Qute Theater][mpc-qt] (newer than 18.03 or 2018-06-20)
 - [Media Player Daemon][mpd] (through [mpDris2][] - `master` branch)
 - [mpv][] (through [mpv-mpris][])
@@ -110,6 +113,8 @@ For available options, see the [default `config.toml`][default-config].
 [mpris2]: https://specifications.freedesktop.org/mpris-spec/2.2/
 [pipenv]: https://docs.pipenv.org/
 [cmus]: https://cmus.github.io/
+[kde-chrome]: https://chrome.google.com/webstore/detail/plasma-integration/cimiefiiaegbelhefglklhhakcgmhkai
+[kde-firefox]: https://addons.mozilla.org/en-US/firefox/addon/plasma-integration/
 [mpc-qt]: https://github.com/cmdrkotori/mpc-qt
 [mpd]: https://musicpd.org/
 [mpDris2]: https://github.com/eonpatapon/mpDris2
