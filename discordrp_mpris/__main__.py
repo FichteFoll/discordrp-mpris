@@ -205,7 +205,10 @@ class DiscordMpris:
         # aggregate artist and albumArtist fields
         for key in ('artist', 'albumArtist'):
             source = metadata.get(f'xesam:{key}', ())
-            replacements[key] = " & ".join(source)
+            if isinstance(source, str):  # In case the server doesn't follow mpris specs
+                replacements[key] = source
+            else:
+                replacements[key] = " & ".join(source)
         # shorthands
         replacements['title'] = metadata.get('xesam:title', "")
         replacements['album'] = metadata.get('xesam:album', "")
