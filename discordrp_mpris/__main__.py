@@ -98,6 +98,7 @@ class DiscordMpris:
                 player.player.PlaybackStatus,  # type: ignore
             )
         metadata = ampris2.unwrap_metadata(metadata)
+        logger.debug(f"Metadata: {metadata}")
         length = metadata.get('mpris:length', 0)
 
         replacements = self.build_replacements(player, metadata)
@@ -141,7 +142,9 @@ class DiscordMpris:
                                   'large_image': state.lower()}
 
         if activity != self.last_activity:
-            await self.discord.set_activity(activity)
+            op_recv, result = await self.discord.set_activity(activity)
+            if result['evt'] == 'ERROR':
+                logger.error(f"Error setting activity: {result['data']['message']}")
             self.last_activity = activity
         else:
             logger.debug("Not sending activity because it didn't change")
