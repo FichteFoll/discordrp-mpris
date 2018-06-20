@@ -1,3 +1,12 @@
+v0.2.1 (2018-06-20)
+-------------------
+
+* Added icons for players: Clementine, mpc-qt
+* Packaging fixes
+* Catch and log Discord errors
+* Add fallback for mpris servers not correctly following mpris spec
+
+
 v0.2.0 (2018-06-15)
 -------------------
 
