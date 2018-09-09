@@ -6,8 +6,8 @@ from typing import Dict, Iterable, List, Optional
 
 import ampris2
 import dbussy
-from discord_rpc.async import (AsyncDiscordRpc, DiscordRpcError, JSON,
-                               exceptions as async_exceptions)
+from discord_rpc.async_ import (AsyncDiscordRpc, DiscordRpcError, JSON,
+                                exceptions as async_exceptions)
 
 from .config import Config
 
