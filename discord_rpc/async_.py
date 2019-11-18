@@ -29,9 +29,9 @@ Reply = Tuple[int, JSON]
 logger = logging.getLogger(__name__)
 
 # commonly thrown exceptions when connection is lost
-exceptions = [ConnectionResetError, BrokenPipeError]
+exceptions = (ConnectionResetError, BrokenPipeError)
 try:
-    exceptions.append(asyncio.streams.IncompleteReadError)
+    exceptions += (asyncio.streams.IncompleteReadError,)
 except AttributeError:
     pass
 

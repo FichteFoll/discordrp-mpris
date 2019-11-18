@@ -217,10 +217,7 @@ class DiscordMpris:
         replacements['album'] = metadata.get('xesam:album', "")
 
         # replace invalid indent char
-        for key in replacements:
-            if ':' in key:
-                replacements[key.replace(':', '_')] = replacements[key]
-                del replacements[key]
+        replacements = {key.replace(':', '_'): val for key, val in replacements.items()}
 
         return replacements
 
