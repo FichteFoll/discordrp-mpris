@@ -237,11 +237,11 @@ class DiscordMpris:
         if microsecs is None:
             return None
         secs = microsecs // int(1e6)
-        mins = secs // 60
-        hours = mins // 60
-        string = f"{mins % 60:d}:{secs % 60:02d}"
+        mins, secs = divmod(secs, 60)
+        hours, mins = divmod(mins, 60)
+        string = f"{mins:d}:{secs:02d}"
         if hours > 0:
-            string = f"{hours:d}:{mins % 60:02d}:{secs % 60:02d}"
+            string = f"{hours:d}:{mins:02d}:{secs:02d}"
         return string
 
     @staticmethod
