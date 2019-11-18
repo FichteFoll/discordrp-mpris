@@ -83,8 +83,10 @@ class AsyncDiscordRpc(metaclass=ABCMeta):
         if ret_op == OP_FRAME and ret_data['cmd'] == 'DISPATCH' and ret_data['evt'] == 'READY':
             return
         else:
-            # TOFIX: {'message': "Cannot read property 'id' of undefined"}
-            # ?????
+            # No idea when or why this occurs; just try again.
+            if ret_data == {'message': "Cannot read property 'id' of undefined"}:
+                await asyncio.sleep(0.3)
+                self._do_handshake()
             if ret_op == OP_CLOSE:
                 await self.close()
             raise RuntimeError(ret_data)
