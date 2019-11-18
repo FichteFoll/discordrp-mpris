@@ -29,7 +29,11 @@ Reply = Tuple[int, JSON]
 logger = logging.getLogger(__name__)
 
 # commonly thrown exceptions when connection is lost
-exceptions = (ConnectionResetError, BrokenPipeError, asyncio.streams.IncompleteReadError)
+exceptions = [ConnectionResetError, BrokenPipeError]
+try:
+    exceptions.append(asyncio.streams.IncompleteReadError)
+except AttributeError:
+    pass
 
 
 class DiscordRpcError(Exception):
