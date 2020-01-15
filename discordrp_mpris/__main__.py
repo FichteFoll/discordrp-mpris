@@ -19,9 +19,10 @@ PLAYER_ICONS = {
     'Music Player Daemon': 'mpd',
     'VLC media player': 'vlc',
 }
+DEFAULT_LOG_LEVEL = logging.WARNING
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=DEFAULT_LOG_LEVEL)
 
 Player = ampris2.PlayerInterfaces  # type alias
 
@@ -252,9 +253,16 @@ class DiscordMpris:
 async def main_async(loop: asyncio.AbstractEventLoop):
     config = Config.load()
     # TODO validate?
+
+    log_level_name = None
     if config.raw_get('global.debug', False):
-        logging.getLogger().setLevel(logging.DEBUG)
-        logger.debug(f"Config: {config.raw_config}")
+        log_level_name = 'DEBUG'
+    log_level_name = config.raw_get('global.log_level', log_level_name)
+    if log_level_name and log_level_name.isupper():
+        log_level = getattr(logging, log_level_name, logging.WARNING)
+        logging.getLogger().setLevel(log_level)
+
+    logger.debug(f"Config: {config.raw_config}")
 
     mpris = await ampris2.Mpris2Dbussy.create(loop=loop)
     async with AsyncDiscordRpc.for_platform(CLIENT_ID) as discord:

@@ -1,6 +1,8 @@
 [global]
-# Enable debug level logging
+# Enable debug level logging or configure level directly
 debug = false
+log_level = "WARNING"
+
 poll_interval = 5
 reconnect_wait = 1
 
