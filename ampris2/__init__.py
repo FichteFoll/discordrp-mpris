@@ -2,7 +2,7 @@ import asyncio
 import enum
 import functools
 import logging
-from typing import Any, Dict, Sequence, NamedTuple, TypeVar
+from typing import Any, Dict, NamedTuple, Optional, Sequence, TypeVar
 
 import dbussy
 import ravel
@@ -22,8 +22,8 @@ class PlayerInterfaces(NamedTuple):
     # TODO define type stubs
     root: ProxyInterface
     player: ProxyInterface
-    tracklist: ProxyInterface = None
-    playlists: ProxyInterface = None
+    tracklist: Optional[ProxyInterface] = None
+    playlists: Optional[ProxyInterface] = None
 
 
 class PlaybackStatus(str, enum.Enum):
