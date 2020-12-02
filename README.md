@@ -66,6 +66,7 @@ pipenv run python -m discordrp-mpris
 The following media players are known to be supported:
 
 - [Clementine][]
+- [Strawberry][]
 - [cmus][]
 - KDE Plasma integration through:
     - [Chrome addon][kde-chrome]
@@ -114,6 +115,7 @@ For available options, see the [default `config.toml`][default-config].
 [mpris2]: https://specifications.freedesktop.org/mpris-spec/2.2/
 [pipenv]: https://docs.pipenv.org/
 [Clementine]: https://www.clementine-player.org/
+[Strawberry]: https://www.strawberrymusicplayer.org/
 [cmus]: https://cmus.github.io/
 [kde-chrome]: https://chrome.google.com/webstore/detail/plasma-integration/cimiefiiaegbelhefglklhhakcgmhkai
 [kde-firefox]: https://addons.mozilla.org/en-US/firefox/addon/plasma-integration/
