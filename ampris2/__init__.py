@@ -30,6 +30,8 @@ class PlaybackStatus(str, enum.Enum):
     PLAYING = "Playing"
     PAUSED = "Paused"
     STOPPED = "Stopped"
+    # Not a valid status, but we use this as a fallback
+    UNKNOWN = "Unknown"
 
 
 _K = TypeVar('_K')

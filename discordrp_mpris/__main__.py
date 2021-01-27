@@ -24,9 +24,12 @@ DEFAULT_LOG_LEVEL = logging.WARNING
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=DEFAULT_LOG_LEVEL)
 
-STATE_PRIORITY = (PlaybackStatus.PLAYING,
-                  PlaybackStatus.PAUSED,
-                  PlaybackStatus.STOPPED)
+STATE_PRIORITY = [
+    PlaybackStatus.PLAYING,
+    PlaybackStatus.PAUSED,
+    PlaybackStatus.STOPPED,
+    PlaybackStatus.UNKNOWN,
+]
 
 
 class DiscordMpris:
@@ -174,7 +177,7 @@ class DiscordMpris:
             logger.debug(f"found players: {debug_list}")
 
         # Prioritize last active player per group,
-        # but don't check stopped players.
+        # but only check playing or paused.
         for state in STATE_PRIORITY[:2]:
             group = groups[state]
             candidates: List[Player] = []
@@ -225,7 +228,10 @@ class DiscordMpris:
                             ) -> Dict[PlaybackStatus, List[Player]]:
         groups: Dict[PlaybackStatus, List[Player]] = {state: [] for state in PlaybackStatus}
         for p in players:
-            state = PlaybackStatus(await p.player.PlaybackStatus)  # type: ignore
+            try:
+                state = PlaybackStatus(await p.player.PlaybackStatus)  # type: ignore
+            except ValueError:
+                state = PlaybackStatus.UNKNOWN
             groups[state].append(p)
 
         return groups
