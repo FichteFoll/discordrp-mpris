@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 import struct
-from typing import cast, Any, Dict, Tuple
+from typing import cast, Any, Dict, Generator, Tuple
 import uuid
 
 
@@ -28,10 +28,11 @@ Reply = Tuple[int, JSON]
 
 logger = logging.getLogger(__name__)
 
-# commonly thrown exceptions when connection is lost
+# Commonly thrown exceptions when connection is lost.
+# Must be a tuple to be used in `except`.
 exceptions = (ConnectionResetError, BrokenPipeError)
 try:
-    exceptions += (asyncio.streams.IncompleteReadError,)
+    exceptions += (asyncio.streams.IncompleteReadError,)  # type: ignore
 except AttributeError:
     pass
 
@@ -187,6 +188,17 @@ class AsyncDiscordRpc(metaclass=ABCMeta):
         return await self.send_recv(data)
 
 
+def _disconnect_on_error(func):
+    @wraps(func)
+    def wrapper(unix_rpc, *args, **kwargs):
+        try:
+            return func(unix_rpc, *args, **kwargs)
+        except exceptions:
+            unix_rpc.reader.feed_eof()
+            raise
+    return wrapper
+
+
 class UnixAsyncDiscordRpc(AsyncDiscordRpc):
 
     reader = None
@@ -197,11 +209,12 @@ class UnixAsyncDiscordRpc(AsyncDiscordRpc):
         return self.reader and not self.reader.at_eof()
 
     async def _connect(self) -> None:
-        pipe_pattern = self._get_pipe_pattern()
-        for i in range(10):
-            path = pipe_pattern.format(i)
+
+        for path in self._iter_path_candidates():
             if not os.path.exists(path):
+                logger.debug("%r not found", path)
                 continue
+            logger.debug("Attempting to connecting to %r", path)
             try:
                 self.reader, self.writer = \
                     await asyncio.open_unix_connection(path, loop=self.loop)
@@ -213,25 +226,22 @@ class UnixAsyncDiscordRpc(AsyncDiscordRpc):
             raise DiscordRpcError("Failed to connect to a Discord pipe")
 
     @staticmethod
-    def _get_pipe_pattern() -> str:
+    def _iter_path_candidates() -> Generator[str, None, None]:
         env_keys = ('XDG_RUNTIME_DIR', 'TMPDIR', 'TMP', 'TEMP')
         for env_key in env_keys:
-            dir_path = os.environ.get(env_key)
-            if dir_path:
+            base_path = os.environ.get(env_key)
+            if base_path and base_path.endswith('snap.sublime-text'):
+                base_path = base_path[:-17]
+            if base_path:
                 break
         else:
-            dir_path = '/tmp'
-        return os.path.join(dir_path, 'discord-ipc-{}')
-
-    def _disconnect_on_error(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except exceptions:
-                self.reader.feed_eof()
-                raise
-        return wrapper
+            base_path = "/tmp"
+        sub_path_candidates = ("snap.discord", "app/com.discordapp.Discord", "")
+        for sub_path in sub_path_candidates:
+            dir_path = os.path.join(base_path, sub_path)
+            if os.path.exists(dir_path):
+                for i in range(10):
+                    yield os.path.join(dir_path, "discord-ipc-{}".format(i))
 
     @_disconnect_on_error
     async def _write(self, data: bytes) -> None:
