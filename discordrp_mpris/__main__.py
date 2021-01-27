@@ -13,11 +13,15 @@ from .config import Config
 
 CLIENT_ID = '435587535150907392'
 PLAYER_ICONS = {
+    # Maps player identity name to icon name
+    # https://discord.com/developers/applications/435587535150907392/rich-presence/assets
     'Clementine': 'clementine',
     'Media Player Classic Qute Theater': 'mpc-qt',
     'mpv': 'mpv',
     'Music Player Daemon': 'mpd',
     'VLC media player': 'vlc',
+    'SMPlayer': 'smplayer',
+    'Lollypop': 'lollypop',
 }
 DEFAULT_LOG_LEVEL = logging.WARNING
 
