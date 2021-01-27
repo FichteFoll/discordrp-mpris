@@ -1,3 +1,21 @@
+v0.3.0 (2021-01-27)
+-------------------
+
+* Add missing pytoml dependency (#9)
+* Fix compatibility with Python 3.8
+* Add config for the log level and default to 'WARNING'
+* Add support for Discord installed via Snap or Flatpak (#17)
+* Add icons for SMPlayer and Lollypop (#7, #15)
+* Be more lenient with the mpris2 interface to support SMPlayer (#7)
+* Catch more exceptions
+
+
+v0.2.2 (2018-09-09)
+-------------------
+
+* Fix compatibility with Python 3.7
+
+
 v0.2.1 (2018-06-20)
 -------------------
 
