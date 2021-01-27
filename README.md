@@ -71,16 +71,21 @@ The following media players are known to be supported:
 - KDE Plasma integration through:
     - [Chrome addon][kde-chrome]
     - [FireFox addon][kde-firefox]
+- [Lollypop][]
 - [Media Player Classic Qute Theater][mpc-qt] (newer than 18.03 or 2018-06-20)
 - [Media Player Daemon][mpd] (through [mpDris2][] - `master` branch)
 - [mpv][] (through [mpv-mpris][])
+- [SMPlayer][]
 - [VLC Media Player][vlc]
 
 Icons are available for:
 
+- Clementine
+- Lollypop
 - Media Player Daemon
 - Media Player Classic Qute Theater
 - mpv
+- SMPlayer
 - VLC Media Player
 
 When no player icon is available,
@@ -119,6 +124,7 @@ For available options, see the [default `config.toml`][default-config].
 [cmus]: https://cmus.github.io/
 [kde-chrome]: https://chrome.google.com/webstore/detail/plasma-integration/cimiefiiaegbelhefglklhhakcgmhkai
 [kde-firefox]: https://addons.mozilla.org/en-US/firefox/addon/plasma-integration/
+[Lollypop]: https://wiki.gnome.org/Apps/Lollypop
 [mpc-qt]: https://github.com/cmdrkotori/mpc-qt
 [mpd]: https://musicpd.org/
 [mpDris2]: https://github.com/eonpatapon/mpDris2
@@ -126,5 +132,6 @@ For available options, see the [default `config.toml`][default-config].
 [mpv-mpris]: https://github.com/hoyon/mpv-mpris
 [vlc]: https://www.videolan.org/vlc/
 [mps-youtube]: https://github.com/mps-youtube/mps-youtube
+[SMPlayer]: https://www.smplayer.info/
 [TOML]: https://github.com/toml-lang/toml
 [default-config]: discordrp_mpris/config/config.toml
