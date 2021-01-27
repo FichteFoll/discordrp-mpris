@@ -30,11 +30,7 @@ logger = logging.getLogger(__name__)
 
 # Commonly thrown exceptions when connection is lost.
 # Must be a tuple to be used in `except`.
-exceptions = (ConnectionResetError, BrokenPipeError)
-try:
-    exceptions += (asyncio.streams.IncompleteReadError,)  # type: ignore
-except AttributeError:
-    pass
+exceptions = (ConnectionResetError, BrokenPipeError, asyncio.IncompleteReadError)
 
 
 class DiscordRpcError(Exception):
