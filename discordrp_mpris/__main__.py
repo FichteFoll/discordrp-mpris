@@ -105,7 +105,8 @@ class DiscordMpris:
         length = metadata.get('mpris:length', 0)
 
         replacements = self.build_replacements(player, metadata)
-        replacements['position'] = self.format_timestamp(position)
+        # position should already be an int, but some players (smplayer) return a float
+        replacements['position'] = self.format_timestamp(int(position))
         replacements['length'] = self.format_timestamp(length)
         replacements['player'] = player.name
         replacements['state'] = state
