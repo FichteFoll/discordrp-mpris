@@ -250,13 +250,16 @@ async def main_async(loop: asyncio.AbstractEventLoop):
     config = Config.load()
     # TODO validate?
 
-    log_level_name = None
+    log_level = logging.WARNING
     if config.raw_get('global.debug', False):
         log_level_name = 'DEBUG'
-    log_level_name = config.raw_get('global.log_level', log_level_name)
+    else:
+        log_level_name = config.raw_get('global.log_level')
     if log_level_name and log_level_name.isupper():
-        log_level = getattr(logging, log_level_name, logging.WARNING)
-        logging.getLogger().setLevel(log_level)
+        log_level = getattr(logging, log_level_name, log_level)
+
+    # set level of root logger
+    logging.getLogger().setLevel(log_level)
 
     logger.debug(f"Config: {config.raw_config}")
 
