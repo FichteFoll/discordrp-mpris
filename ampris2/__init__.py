@@ -83,7 +83,7 @@ class Mpris2Dbussy():
         # dbussy.DBusError: org.freedesktop.DBus.Error.ServiceUnknown
         #   -- The name org.mpris.MediaPlayer2.mpd was not provided by any .service files
         # dbussy.DBusError: org.freedesktop.DBus.Error.UnknownInterface
-        #   -- Object does not implement the interface
+        #   -- peer … object … does not understand interface …
         obj = self.get_player_object(bus_name)
         iface_names = [self.IFACE_NAME,
                        *(f"{self.IFACE_NAME}.{sub}" for sub in self.SUB_IFACES)]
