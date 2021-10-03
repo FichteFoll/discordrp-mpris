@@ -35,6 +35,9 @@ STATE_PRIORITY = [
     PlaybackStatus.UNKNOWN,
 ]
 
+# Maximum allowed byte count of Rich Presence's "details" field
+DETAILS_BYTES_MAX = 128
+
 
 class DiscordMpris:
 
@@ -124,7 +127,10 @@ class DiscordMpris:
             details_fmt = "{title}\nby {artist}"
         else:
             details_fmt = "{title}"
-        activity['details'] = self.format_details(details_fmt, replacements)
+        activity['details'] = self.shorten(
+            self.format_details(details_fmt, replacements),
+            byte_width=DETAILS_BYTES_MAX,
+        )
 
         # set state and timestamps
         activity['timestamps'] = {}
@@ -219,7 +225,10 @@ class DiscordMpris:
             else:
                 replacements[key] = " & ".join(source)
         # shorthands
-        replacements['title'] = metadata.get('xesam:title', "")
+        replacements['title'] = self.shorten(
+            metadata.get('xesam:title', ""),
+            byte_width=self.config.player_get(player, 'max_title_len', 64)
+        )
         replacements['album'] = metadata.get('xesam:album', "")
 
         # replace invalid ident char
@@ -255,6 +264,29 @@ class DiscordMpris:
     @staticmethod
     def format_details(template: str, replacements: Dict[str, Optional[str]]) -> str:
         return template.format(**replacements)
+
+    # Mimics Python's textwrap.shorten behavior, but using bytes for width
+    @staticmethod
+    def shorten(string: str, byte_width: int, placeholder: str = '…') -> str:
+        # Implementation based on https://stackoverflow.com/a/56429867/16062995
+
+        # make sure the placeholder satisfies the byte length requirement
+        encoded_placeholder = placeholder.encode()
+        if byte_width < len(encoded_placeholder):
+            raise ValueError('placeholder too large for max width')
+
+        encoded_string = string.encode()
+
+        if len(encoded_string) <= byte_width:
+            return string
+
+        # shorten the string and add the placeholder
+        substring = encoded_string[:byte_width - len(encoded_placeholder)]
+        splitted = substring.rsplit(b' ', 1)  # split at last space-character
+        if len(splitted) == 2:
+            return b' '.join([splitted[0], encoded_placeholder]).decode()
+        else:
+            return placeholder
 
 
 async def main_async(loop: asyncio.AbstractEventLoop):

@@ -16,6 +16,8 @@ show_stopped = false
 show_time = "elapsed"
 # Whether to ignore a player. Supposed to be overridden.
 ignore = false
+# Maximum number of bytes in the title field
+max_title_len = 64
 
 # You can override any of the [options] options
 # for each player individually.
