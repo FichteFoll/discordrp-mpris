@@ -213,7 +213,7 @@ class UnixAsyncDiscordRpc(AsyncDiscordRpc):
             logger.debug("Attempting to connecting to %r", path)
             try:
                 self.reader, self.writer = \
-                    await asyncio.open_unix_connection(path, loop=self.loop)
+                    await asyncio.open_unix_connection(path)
             except OSError as e:
                 logger.error("failed to open {!r}: {}".format(path, e))
             else:
