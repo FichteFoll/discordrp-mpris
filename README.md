@@ -123,7 +123,7 @@ For available options, see the [default `config.toml`][default-config].
 [Clementine]: https://www.clementine-player.org/
 [Strawberry]: https://www.strawberrymusicplayer.org/
 [cmus]: https://cmus.github.io/
-[plasma-intergation]: https://community.kde.org/Plasma/Browser_Integration
+[plasma-integration]: https://community.kde.org/Plasma/Browser_Integration
 [Lollypop]: https://wiki.gnome.org/Apps/Lollypop
 [mpc-qt]: https://github.com/cmdrkotori/mpc-qt
 [mpd]: https://musicpd.org/
