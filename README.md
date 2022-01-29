@@ -68,12 +68,12 @@ The following media players are known to be supported:
 - [Clementine][]
 - [Strawberry][]
 - [cmus][]
-- KDE Plasma integration through:
-    - [Chrome addon][kde-chrome]
-    - [FireFox addon][kde-firefox]
+- [KDE Plasma integration][plasma-integration] (supports various browsers)
 - [Lollypop][]
 - [Media Player Classic Qute Theater][mpc-qt] (newer than 18.03 or 2018-06-20)
-- [Media Player Daemon][mpd] (through [mpDris2][] - `master` branch)
+- [Media Player Daemon][mpd] (through [mpDris2][])
+- [Mozilla Firefox][]
+  (does not support `Position` attribute; [upstream ticket][firefox-bug])
 - [mpv][] (through [mpv-mpris][])
 - [SMPlayer][]
 - [VLC Media Player][vlc]
@@ -84,6 +84,7 @@ Icons are available for:
 - Lollypop
 - Media Player Daemon
 - Media Player Classic Qute Theater
+- Mozilla Firefox
 - mpv
 - SMPlayer
 - VLC Media Player
@@ -122,8 +123,7 @@ For available options, see the [default `config.toml`][default-config].
 [Clementine]: https://www.clementine-player.org/
 [Strawberry]: https://www.strawberrymusicplayer.org/
 [cmus]: https://cmus.github.io/
-[kde-chrome]: https://chrome.google.com/webstore/detail/plasma-integration/cimiefiiaegbelhefglklhhakcgmhkai
-[kde-firefox]: https://addons.mozilla.org/en-US/firefox/addon/plasma-integration/
+[plasma-intergation]: https://community.kde.org/Plasma/Browser_Integration
 [Lollypop]: https://wiki.gnome.org/Apps/Lollypop
 [mpc-qt]: https://github.com/cmdrkotori/mpc-qt
 [mpd]: https://musicpd.org/
@@ -135,3 +135,5 @@ For available options, see the [default `config.toml`][default-config].
 [SMPlayer]: https://www.smplayer.info/
 [TOML]: https://github.com/toml-lang/toml
 [default-config]: discordrp_mpris/config/config.toml
+[firefox-bug]: https://bugzilla.mozilla.org/show_bug.cgi?id=1659199
+[Mozilla Firefox]: https://www.mozilla.org/en-US/firefox/new/

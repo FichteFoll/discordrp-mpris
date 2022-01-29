@@ -24,6 +24,7 @@ PLAYER_ICONS = {
     'VLC media player': 'vlc',
     'SMPlayer': 'smplayer',
     'Lollypop': 'lollypop',
+    'Mozilla Firefox': 'firefox',
 }
 DEFAULT_LOG_LEVEL = logging.WARNING
 
