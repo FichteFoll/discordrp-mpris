@@ -130,12 +130,8 @@ class DiscordMpris:
         logger.debug(f"Metadata: {metadata}")
         length = metadata.get('mpris:length', 0)
 
-        replacements = self.build_replacements(player, metadata)
         # position should already be an int, but some players (smplayer) return a float
-        replacements['position'] = self.format_timestamp(int(position))
-        replacements['length'] = self.format_timestamp(length)
-        replacements['player'] = player.name
-        replacements['state'] = state
+        replacements = self.build_replacements(player, metadata, int(position), length, state)
 
         # TODO make format configurable
         if replacements['artist']:
@@ -229,7 +225,15 @@ class DiscordMpris:
     def _player_not_ignored(self, player: Player) -> bool:
         return (not self.config.player_get(player, "ignore", False))
 
-    def build_replacements(self, player: Player, metadata) -> Dict[str, Optional[str]]:
+    @classmethod
+    def build_replacements(
+        cls,
+        player: Player,
+        metadata: Dict[str, Any],
+        position: int,
+        length: Optional[int],
+        state: PlaybackStatus,
+    ) -> Dict[str, Any]:
         replacements = metadata.copy()
 
         # aggregate artist and albumArtist fields
@@ -242,6 +246,12 @@ class DiscordMpris:
         # shorthands
         replacements['title'] = metadata.get('xesam:title', "")
         replacements['album'] = metadata.get('xesam:album', "")
+
+        # other data
+        replacements['position'] = cls.format_timestamp(position)
+        replacements['length'] = cls.format_timestamp(length)
+        replacements['player'] = player.name
+        replacements['state'] = state
 
         # replace invalid ident char
         replacements = {key.replace(':', '_'): val for key, val in replacements.items()}
