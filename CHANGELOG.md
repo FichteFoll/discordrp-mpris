@@ -1,9 +1,16 @@
+v0.3.2 (2022-01-29)
+-------------------
+
+* Handle missing `Position` property to add support for Mozilla Firefox (#18)
+
+
 v0.3.1 (2022-01-29)
 -------------------
 
 * Ensure we don't exceed the maximum characters for 'details' field (#20, #24)
 * Fix compatibility with Python 3.10 (#26)
 * Use a cleaner logging format
+
 
 v0.3.0 (2021-01-27)
 -------------------
