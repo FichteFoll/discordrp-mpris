@@ -4,7 +4,7 @@ import re
 import sys
 import time
 from textwrap import shorten
-from typing import Any, DefaultDict, Dict, Iterable, List, Optional
+from typing import Any, DefaultDict, Dict, Iterable, List, Optional, Union
 
 from ampris2 import Mpris2Dbussy, PlaybackStatus, PlayerInterfaces as Player, unwrap_metadata
 import dbussy
@@ -120,18 +120,24 @@ class DiscordMpris:
         self.active_player = player
 
         activity: JSON = {}
-        metadata, position, state = \
+        metadata, state = \
             await asyncio.gather(
                 player.player.Metadata,  # type: ignore
-                player.player.Position,  # type: ignore
                 player.player.PlaybackStatus,  # type: ignore
             )
+        # Some players (like Firefox) don't support the required Position property
+        position: Optional[Union[int, float]]
+        try:
+            position = await player.player.Position  # type: ignore
+        except dbussy.DBusError as e:
+            position = None
+            logger.debug("Failed to retrieve position", exc_info=e)
         metadata = unwrap_metadata(metadata)
         logger.debug(f"Metadata: {metadata}")
         length = metadata.get('mpris:length', 0)
 
         # position should already be an int, but some players (smplayer) return a float
-        replacements = self.build_replacements(player, metadata, int(position), length, state)
+        replacements = self.build_replacements(player, metadata, position, length, state)
 
         # TODO make format configurable
         if replacements['artist']:
@@ -145,19 +151,21 @@ class DiscordMpris:
 
         # set state and timestamps
         activity['timestamps'] = {}
-        if state == PlaybackStatus.PLAYING:
-            show_time = self.config.player_get(player, 'show_time', 'elapsed')
-            start_time = int(time.time() - position / 1e6)
-            if show_time == 'elapsed':
-                activity['timestamps']['start'] = start_time
-            elif show_time == 'remaining':
-                end_time = start_time + (length / 1e6)
-                activity['timestamps']['end'] = end_time
-            activity['state'] = self.format_details("{state} [{length}]", replacements)
-        elif state == PlaybackStatus.PAUSED:
-            activity['state'] = self.format_details("{state} [{position}/{length}]", replacements)
-        else:
-            activity['state'] = self.format_details("{state}", replacements)
+        if length and position is not None:
+            if state == PlaybackStatus.PLAYING:
+                show_time = self.config.player_get(player, 'show_time', 'elapsed')
+                start_time = int(time.time() - position / 1e6)
+                if show_time == 'elapsed':
+                    activity['timestamps']['start'] = start_time
+                elif show_time == 'remaining':
+                    end_time = start_time + (length / 1e6)
+                    activity['timestamps']['end'] = end_time
+                activity['state'] = self.format_details("{state} [{length}]", replacements)
+            elif state == PlaybackStatus.PAUSED:
+                activity['state'] = self.format_details("{state} [{position}/{length}]",
+                                                        replacements)
+            else:
+                activity['state'] = self.format_details("{state}", replacements)
 
         # set icons and hover texts
         if player.name in PLAYER_ICONS:
@@ -230,7 +238,7 @@ class DiscordMpris:
         cls,
         player: Player,
         metadata: Dict[str, Any],
-        position: int,
+        position: Optional[Union[int, float]],
         length: Optional[int],
         state: PlaybackStatus,
     ) -> Dict[str, Any]:
@@ -248,7 +256,8 @@ class DiscordMpris:
         replacements['album'] = metadata.get('xesam:album', "")
 
         # other data
-        replacements['position'] = cls.format_timestamp(position)
+        replacements['position'] = \
+            cls.format_timestamp(int(position)) if position is not None else ''
         replacements['length'] = cls.format_timestamp(length)
         replacements['player'] = player.name
         replacements['state'] = state
