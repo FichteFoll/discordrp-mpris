@@ -1,8 +1,10 @@
 import asyncio
 import logging
+import re
 import sys
 import time
-from typing import Dict, Iterable, List, Optional
+from textwrap import shorten
+from typing import Any, DefaultDict, Dict, Iterable, List, Optional
 
 from ampris2 import Mpris2Dbussy, PlaybackStatus, PlayerInterfaces as Player, unwrap_metadata
 import dbussy
@@ -39,8 +41,18 @@ STATE_PRIORITY = [
     PlaybackStatus.UNKNOWN,
 ]
 
-# Maximum allowed byte count of Rich Presence's "details" field
-DETAILS_BYTES_MAX = 128
+# Maximum allowed characters of Rich Presence's "details" field
+DETAILS_MAX_CHARS = 128
+
+# Relative weight for shortening when details exceeds max length
+weigth_map: dict[str, int] = DefaultDict(
+    lambda: 1,
+    title=4,
+    xesam_title=4,
+    artist=2,
+    album=2,
+    xesam_album=2,
+)
 
 
 class DiscordMpris:
@@ -125,16 +137,15 @@ class DiscordMpris:
         replacements['player'] = player.name
         replacements['state'] = state
 
-        # TODO pref
+        # TODO make format configurable
         if replacements['artist']:
             # details_fmt = "{artist} - {title}"
             details_fmt = "{title}\nby {artist}"
         else:
             details_fmt = "{title}"
-        activity['details'] = self.shorten(
-            self.format_details(details_fmt, replacements),
-            byte_width=DETAILS_BYTES_MAX,
-        )
+        details = self.format_details(details_fmt, replacements)
+
+        activity['details'] = details
 
         # set state and timestamps
         activity['timestamps'] = {}
@@ -229,10 +240,7 @@ class DiscordMpris:
             else:
                 replacements[key] = " & ".join(source)
         # shorthands
-        replacements['title'] = self.shorten(
-            metadata.get('xesam:title', ""),
-            byte_width=self.config.player_get(player, 'max_title_len', 64)
-        )
+        replacements['title'] = metadata.get('xesam:title', "")
         replacements['album'] = metadata.get('xesam:album', "")
 
         # replace invalid ident char
@@ -266,31 +274,28 @@ class DiscordMpris:
         return string
 
     @staticmethod
-    def format_details(template: str, replacements: Dict[str, Optional[str]]) -> str:
-        return template.format(**replacements)
+    def format_details(template: str, replacements: Dict[str, Any]) -> str:
+        # Assumes that there are no numeric characters in the template.
+        details = template.format_map(replacements)
 
-    # Mimics Python's textwrap.shorten behavior, but using bytes for width
-    @staticmethod
-    def shorten(string: str, byte_width: int, placeholder: str = '…') -> str:
-        # Implementation based on https://stackoverflow.com/a/56429867/16062995
+        if len(details) > DETAILS_MAX_CHARS:
+            # Insert null character between replacements
+            # so that consecutive replacements don't result in a big number.
+            details_with_weigths = template.replace("}{", "}\0{").format_map(weigth_map)
+            print(f"{details_with_weigths=}")
+            total_weight = sum(map(float, re.findall(r"[\d.]+", details_with_weigths)))
+            print(f"{total_weight=}")
+            num_fixed_chars = len(re.sub(r"[\d.\0]+", '', details_with_weigths))
+            print(f"{num_fixed_chars=}")
+            factor = (DETAILS_MAX_CHARS - num_fixed_chars) / total_weight
+            print(f"{factor=}")
+            weighted_replacements = {
+                key: shorten(str(value), int(weigth_map[key] * factor), placeholder='…')
+                for key, value in replacements.items()
+            }
+            details = template.format_map(weighted_replacements)
 
-        # make sure the placeholder satisfies the byte length requirement
-        encoded_placeholder = placeholder.encode()
-        if byte_width < len(encoded_placeholder):
-            raise ValueError('placeholder too large for max width')
-
-        encoded_string = string.encode()
-
-        if len(encoded_string) <= byte_width:
-            return string
-
-        # shorten the string and add the placeholder
-        substring = encoded_string[:byte_width - len(encoded_placeholder)]
-        splitted = substring.rsplit(b' ', 1)  # split at last space-character
-        if len(splitted) == 2:
-            return b' '.join([splitted[0], encoded_placeholder]).decode()
-        else:
-            return placeholder
+        return details
 
 
 async def main_async(loop: asyncio.AbstractEventLoop):
