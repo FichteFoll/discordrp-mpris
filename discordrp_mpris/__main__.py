@@ -281,13 +281,13 @@ async def main_async(loop: asyncio.AbstractEventLoop):
 
 
 def main() -> int:
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
     main_task = loop.create_task(main_async(loop))
     try:
         return loop.run_until_complete(main_task)
     except BaseException as e:
         main_task.cancel()
-        wait_task = asyncio.wait_for(main_task, 5, loop=loop)
+        wait_task = asyncio.wait_for(main_task, 5)
         try:
             loop.run_until_complete(wait_task)
         except asyncio.CancelledError:
