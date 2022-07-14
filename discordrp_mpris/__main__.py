@@ -46,7 +46,7 @@ STATE_PRIORITY = [
 DETAILS_MAX_CHARS = 128
 
 # Relative weight for shortening when details exceeds max length
-weigth_map: dict[str, int] = DefaultDict(
+weigth_map: Dict[str, int] = DefaultDict(
     lambda: 1,
     title=4,
     xesam_title=4,
