@@ -1,3 +1,9 @@
+v0.3.3 (2022-07-17)
+-------------------
+
+* Fix compatibility with Python versions below 3.9 (#29, #30, @Vftdan)
+
+
 v0.3.2 (2022-01-29)
 -------------------
 
