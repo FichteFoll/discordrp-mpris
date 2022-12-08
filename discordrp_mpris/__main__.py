@@ -3,6 +3,8 @@ import logging
 import re
 import sys
 import time
+import requests
+from urllib import request
 from textwrap import shorten
 from typing import Any, DefaultDict, Dict, Iterable, List, Optional, Union
 
@@ -45,7 +47,7 @@ STATE_PRIORITY = [
 # Maximum allowed characters of Rich Presence's "details" field
 DETAILS_MAX_CHARS = 128
 
-# Relative weight for shortening when details exceeds max length
+# Relative weight for shortening when details exceed max length
 weigth_map: Dict[str, int] = DefaultDict(
     lambda: 1,
     title=4,
@@ -61,8 +63,7 @@ class DiscordMpris:
     active_player: Optional[Player] = None
     last_activity: Optional[JSON] = None
 
-    def __init__(self, mpris: Mpris2Dbussy, discord: AsyncDiscordRpc, config: Config,
-                 ) -> None:
+    def __init__(self, mpris: Mpris2Dbussy, discord: AsyncDiscordRpc, config: Config) -> None:
         self.mpris = mpris
         self.discord = discord
         self.config = config
@@ -169,11 +170,29 @@ class DiscordMpris:
                 activity['state'] = self.format_details("{state}", replacements)
 
         # set icons and hover texts
-        art_icon_url = metadata.get("mpris:artUrl", "")
+        art_icon_url = metadata.get("mpris:artUrl", None)
         if art_icon_url and art_icon_url.startswith(
-              "http"):  # TODO make this work with any other URL, as players also use data:image URL
+              "http") and self.config.get("upload_images", False):
             activity['assets'] = {'large_text': player.name,
-                                  'large_image': metadata.get("mpris:artUrl", ""),
+                                  'large_image': art_icon_url,
+                                  'small_image': state.lower(),
+                                  'small_text': state}
+        elif art_icon_url and self.config.get("upload_images", False):
+            art_icon = request.urlopen(art_icon_url)
+
+            def upload(data):
+                """"Uploads files to host with POST."""
+                host_url = self.config.get("image_host", None)
+                if host_url:
+                    try:
+                        with requests.post(host_url, files={"file": data}) as response:
+                            if response.ok:
+                                return response.text
+                    except requests.exceptions.ConnectionError:
+                        logger.error("Can't connect to image host")
+            image_url = upload(art_icon).strip("\n")
+            activity['assets'] = {'large_text': player.name,
+                                  'large_image': image_url,
                                   'small_image': state.lower(),
                                   'small_text': state}
 
@@ -240,7 +259,7 @@ class DiscordMpris:
             return None
 
     def _player_not_ignored(self, player: Player) -> bool:
-        return (not self.config.player_get(player, "ignore", False))
+        return not self.config.player_get(player, "ignore", False)
 
     @classmethod
     def build_replacements(
