@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 dbussy = "*"
 pytoml = "*"
+requests = "*"
+watchdog = "*"
 
 [dev-packages]
 

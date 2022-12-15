@@ -3,7 +3,7 @@
 debug = false
 log_level = "WARNING"
 
-poll_interval = 5
+poll_interval = 10
 reconnect_wait = 1
 
 # The following can be overridden per player.
@@ -14,10 +14,22 @@ show_paused = true
 show_stopped = false
 # Available values are: "elapsed", "remaining" or "none".
 show_time = "elapsed"
+# Upload images to the host
+# Note: if this set to true, valid image_host must be set.
+# meant to be set to true with all online players
+upload_images = false
+# Use image host to show local album covers
+# There is two conditions to use host:
+# 1) image is sent via HTTP POST
+# 2) The response will be a text which only contains URL of the uploaded image.
+image_host = "https://0x0.st"
 # Whether to ignore a player. Supposed to be overridden.
 ignore = false
 # Maximum number of bytes in the title field
 max_title_len = 64
+# informational string, usually is just artist and title
+# you can use theese formatters here: artist, albumArtist, title, album, position, length, player, state
+details = "{title}\nby {artist}"
 
 # You can override any of the [options] options
 # for each player individually.

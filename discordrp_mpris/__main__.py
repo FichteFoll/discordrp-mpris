@@ -3,6 +3,9 @@ import logging
 import re
 import sys
 import time
+import requests
+from urllib import request
+from functools import lru_cache
 from textwrap import shorten
 from typing import Any, DefaultDict, Dict, Iterable, List, Optional, Union
 
@@ -45,7 +48,7 @@ STATE_PRIORITY = [
 # Maximum allowed characters of Rich Presence's "details" field
 DETAILS_MAX_CHARS = 128
 
-# Relative weight for shortening when details exceeds max length
+# Relative weight for shortening when details exceed max length
 weigth_map: Dict[str, int] = DefaultDict(
     lambda: 1,
     title=4,
@@ -61,8 +64,7 @@ class DiscordMpris:
     active_player: Optional[Player] = None
     last_activity: Optional[JSON] = None
 
-    def __init__(self, mpris: Mpris2Dbussy, discord: AsyncDiscordRpc, config: Config,
-                 ) -> None:
+    def __init__(self, mpris: Mpris2Dbussy, discord: AsyncDiscordRpc, config: Config) -> None:
         self.mpris = mpris
         self.discord = discord
         self.config = config
@@ -140,12 +142,8 @@ class DiscordMpris:
         # position should already be an int, but some players (smplayer) return a float
         replacements = self.build_replacements(player, metadata, position, length, state)
 
-        # TODO make format configurable
-        if replacements['artist']:
-            # details_fmt = "{artist} - {title}"
-            details_fmt = "{title}\nby {artist}"
-        else:
-            details_fmt = "{title}"
+        # details_fmt = "{artist} - {title}"
+        details_fmt = self.config.get("details", "{title}\nby {artist}")
         details = self.format_details(details_fmt, replacements)
 
         activity['details'] = details
@@ -169,7 +167,33 @@ class DiscordMpris:
                 activity['state'] = self.format_details("{state}", replacements)
 
         # set icons and hover texts
-        if player.name in PLAYER_ICONS:
+        art_icon_url = metadata.get("mpris:artUrl", None)
+        if art_icon_url and art_icon_url.startswith(
+              "http") and self.config.get("upload_images", False):
+            activity['assets'] = {'large_text': player.name,
+                                  'large_image': art_icon_url,
+                                  'small_image': state.lower(),
+                                  'small_text': state}
+        elif art_icon_url and self.config.get("upload_images", False):
+            art_icon = request.urlopen(art_icon_url)
+
+            def upload(data):
+                """"Uploads files to host with POST."""
+                host_url = self.config.get("image_host", None)
+                if host_url:
+                    try:
+                        with requests.post(host_url, files={"file": data}) as response:
+                            if response.ok:
+                                return response.text
+                    except requests.exceptions.ConnectionError:
+                        logger.error("Can't connect to image host")
+            image_url = lru_cache(3)(upload)(art_icon).strip("\n")
+            activity['assets'] = {'large_text': player.name,
+                                  'large_image': image_url,
+                                  'small_image': state.lower(),
+                                  'small_text': state}
+
+        elif player.name in PLAYER_ICONS:
             activity['assets'] = {'large_text': player.name,
                                   'large_image': PLAYER_ICONS[player.name],
                                   'small_image': state.lower(),
@@ -232,7 +256,7 @@ class DiscordMpris:
             return None
 
     def _player_not_ignored(self, player: Player) -> bool:
-        return (not self.config.player_get(player, "ignore", False))
+        return not self.config.player_get(player, "ignore", False)
 
     @classmethod
     def build_replacements(
@@ -247,25 +271,34 @@ class DiscordMpris:
 
         # aggregate artist and albumArtist fields
         for key in ('artist', 'albumArtist'):
-            source = metadata.get(f'xesam:{key}', ())
+            source = metadata.get(f'xesam:{key}', ('N/A'))
             if isinstance(source, str):  # In case the server doesn't follow mpris specs
                 replacements[key] = source
             else:
                 replacements[key] = " & ".join(source)
         # shorthands
-        replacements['title'] = metadata.get('xesam:title', "")
-        replacements['album'] = metadata.get('xesam:album', "")
+        replacements['title'] = metadata.get('xesam:title', "N/A")
+        replacements['album'] = metadata.get('xesam:album', "N/A")
 
         # other data
         replacements['position'] = \
-            cls.format_timestamp(int(position)) if position is not None else ''
-        replacements['length'] = cls.format_timestamp(length)
+            cls.format_timestamp(int(position)) if position is not None else 'N/A'
+        replacements['length'] = cls.format_timestamp(length) if length is not None else 'N/A'
         replacements['player'] = player.name
         replacements['state'] = state
 
         # replace invalid ident char
         replacements = {key.replace(':', '_'): val for key, val in replacements.items()}
-
+        # replacements for future generations:
+        # artist
+        # albumArtist
+        # title
+        # album
+        # position
+        # length
+        # player
+        # state
+        # - will be formatted properly.
         return replacements
 
     @staticmethod
@@ -318,10 +351,17 @@ class DiscordMpris:
         return details
 
 
+
+
+
 async def main_async(loop: asyncio.AbstractEventLoop):
-    config = Config.load()
-    # TODO validate?
+    config = Config()
+    config.load()
+    config.setup_reloading()
     configure_logging(config)
+    if not config.check():
+        logger.warning("you're using outdated config.")
+    logger.debug("Set all required things, starting service")
 
     mpris = await Mpris2Dbussy.create(loop=loop)
     async with AsyncDiscordRpc.for_platform(CLIENT_ID) as discord:
@@ -356,8 +396,9 @@ def configure_logging(config: Config) -> None:
     if config.raw_get('global.debug', False):
         log_level_name = 'DEBUG'
     else:
-        log_level_name = config.raw_get('global.log_level')
-    if log_level_name and log_level_name.isupper():
+        log_level_name = config.raw_get('global.log_level').upper()
+        # there was questionable condition of isupper. Let human make their mistakes, if they are small ;-)
+    if log_level_name:
         log_level = getattr(logging, log_level_name, log_level)
 
     # set level of root logger

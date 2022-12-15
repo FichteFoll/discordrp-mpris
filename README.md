@@ -1,7 +1,7 @@
 # Discord Rich Presence through mpris
 
 | User Modal          | Popout Modal          |
-| ------------------- | --------------------- |
+|---------------------|-----------------------|
 | ![][img-user-modal] | ![][img-popout-modal] |
 
 discordrp-mpris provides Rich Presence to Discord clients
@@ -91,6 +91,8 @@ Icons are available for:
 
 When no player icon is available,
 the playback state is used as the large icon.
+
+You can configure discordrp-mpris the way it will show album covers as large image.
 
 The following players are **not** supported:
 
