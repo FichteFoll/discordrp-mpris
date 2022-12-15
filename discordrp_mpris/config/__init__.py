@@ -1,7 +1,10 @@
 import logging
 import os
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
+from atexit import register
 
 import pytoml
 
@@ -12,12 +15,25 @@ logger = logging.getLogger(__name__)
 default_file = Path(__file__).parent / "config.toml"
 
 
-# TODO automatic reloading
+class ConfigChangedEventHandler(FileSystemEventHandler):
+    def __init__(self, load_config_func):
+        super().__init__()
+        self.load_config_func = load_config_func
+
+    def on_modified(self, event):
+        self.load_config_func()
+        logger.debug("Modifications to config are loaded")
+
+
 class Config:
     _obj = object()
+    config_file = default_file
 
-    def __init__(self, raw_config: Dict[str, Any]) -> None:
+    def __init__(self, raw_config: Dict[str, Any] = None) -> None:
         self.raw_config = raw_config
+        self.observer = Observer()
+        self.watch = None
+        self.config_handler = ConfigChangedEventHandler(self.load)
 
     def raw_get(self, key: str, default: Any = None) -> Any:
         segments = key.split('.')
@@ -37,19 +53,23 @@ class Config:
         base = self.get(key, default)
         return self.raw_get(f"player.{player.name}.{key}", base)
 
-    @classmethod
-    def load(cls) -> 'Config':
-        with default_file.open() as f:
-            config = pytoml.load(f)
-        user_config = cls._load_user_config()
-        if user_config:
-            config.update(user_config)
-        return Config(config)
+    def setup_reloading(self):
+        self.watch = self.observer.schedule(self.config_handler, str(self.config_file))
+        self.observer.start()
+        register(self.observer.stop)
 
-    @staticmethod
-    def _load_user_config() -> Optional[Dict[str, Any]]:
+    def load(self):
+        self._load_config()
+
+    def check(self):
+        wconf = self.raw_config
+        tconf = self._load_config_from_path(default_file)
+        flag = set(tconf["global"].keys()) == set(wconf["global"].keys()) and set(tconf["options"].keys()) == \
+               set(wconf["options"].keys())
+        return flag
+
+    def _load_config(self):
         user_patterns = ("$XDG_CONFIG_HOME", "$HOME/.config")
-        user_file = None
 
         for pattern in user_patterns:
             parent = Path(os.path.expandvars(pattern))
@@ -57,7 +77,13 @@ class Config:
                 user_file = parent / "discordrp-mpris" / "config.toml"
                 if user_file.is_file():
                     logging.debug(f"Loading user config: {user_file!s}")
-                    with user_file.open() as f:
-                        return pytoml.load(f)
+                    self.config_file = user_file
+                    self.raw_config = self._load_config_from_path(user_file)
+                    return
+            self.config_file = default_file
+            self.raw_config = self._load_config_from_path(default_file)
 
-        return None
+    @staticmethod
+    def _load_config_from_path(path):
+        with path.open() as f:
+            return pytoml.load(f)
