@@ -299,13 +299,9 @@ class DiscordMpris:
             # Insert null character between replacements
             # so that consecutive replacements don't result in a big number.
             details_with_weigths = template.replace("}{", "}\0{").format_map(weigth_map)
-            print(f"{details_with_weigths=}")
             total_weight = sum(map(float, re.findall(r"[\d.]+", details_with_weigths)))
-            print(f"{total_weight=}")
             num_fixed_chars = len(re.sub(r"[\d.\0]+", '', details_with_weigths))
-            print(f"{num_fixed_chars=}")
             factor = (DETAILS_MAX_CHARS - num_fixed_chars) / total_weight
-            print(f"{factor=}")
             weighted_replacements = {
                 key: shorten(str(value), int(weigth_map[key] * factor), placeholder='…')
                 for key, value in replacements.items()
