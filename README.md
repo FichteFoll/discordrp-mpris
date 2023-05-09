@@ -26,7 +26,7 @@ This project is in *beta* stage.
 
 Requirements:
 
-- Python 3.6 or higher
+- Python 3.8 or higher
 
 ### Recommended
 
@@ -41,23 +41,23 @@ systemctl --user enable discordrp-mpris.service --now
 ```sh
 pip install git+https://github.com/FichteFoll/discordrp-mpris.git
 
-# Usage
+# Usage (assuming your Python bin folder is on PATH)
 discordrp-mpris
 ```
 
 You might also want to use `pip install --user` instead.
 
-### pipenv
+### poetry
 
-Requires [pipenv][].
+Requires [poetry][].
 
 ```sh
 git clone https://github.com/FichteFoll/discordrp-mpris.git
 cd discordrp-mpris
-pipenv install
+poetry install
 
 # Usage
-pipenv run python -m discordrp-mpris
+poetry run discordrp-mpris
 ```
 
 
@@ -119,7 +119,7 @@ For available options, see the [default `config.toml`][default-config].
 <!-- Links -->
 
 [mpris2]: https://specifications.freedesktop.org/mpris-spec/2.2/
-[pipenv]: https://docs.pipenv.org/
+[poetry]: https://python-poetry.org/
 [Clementine]: https://www.clementine-player.org/
 [Strawberry]: https://www.strawberrymusicplayer.org/
 [cmus]: https://cmus.github.io/
