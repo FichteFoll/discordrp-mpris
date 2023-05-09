@@ -42,7 +42,8 @@ ignore = true
 # - icon: Name of the asset to be used as the player's icon.
 #         Must be an assert registered with the Discord application
 #         that is referenced via `global.client_id`.
-#         Can be looked up at (replace with your client_id):
+#         HTTP(S) URLs are also supported.
+#         Asset names be looked up at (replace with your client_id):
 #         https://discord.com/developers/applications/435587535150907392/rich-presence/assets
 [player.Clementine]
 icon = 'clementine'
