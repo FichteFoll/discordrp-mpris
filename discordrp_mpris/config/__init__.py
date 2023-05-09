@@ -7,6 +7,8 @@ import pytoml
 
 from ampris2 import PlayerInterfaces as Player
 
+USER_CONFIG_ROOTS = ("$XDG_CONFIG_HOME", "$HOME/.config")
+
 logger = logging.getLogger(__name__)
 
 default_file = Path(__file__).parent / "config.toml"
@@ -20,11 +22,11 @@ class Config:
         self.raw_config = raw_config
 
     def raw_get(self, key: str, default: Any = None) -> Any:
-        segments = key.split('.')
+        segments = key.split('.')  # TODO doesn't support players with "."
         base: Any = self.raw_config
         for seg in segments:
             if seg not in base:  # this assumes a valid "mapping path"
-                logger.debug(f"No value for key {key!r}")
+                logger.debug(f"No value for key {key!r}; using default {default!r}")
                 return default
             base = base[seg]
         logger.debug(f"Value for {key!r}: {base!r}")
@@ -42,22 +44,20 @@ class Config:
         with default_file.open() as f:
             config = pytoml.load(f)
         user_config = cls._load_user_config()
+        # TODO this is not a deep merge
         if user_config:
             config.update(user_config)
         return Config(config)
 
     @staticmethod
     def _load_user_config() -> Optional[Dict[str, Any]]:
-        user_patterns = ("$XDG_CONFIG_HOME", "$HOME/.config")
-        user_file = None
-
-        for pattern in user_patterns:
-            parent = Path(os.path.expandvars(pattern))
-            if parent.is_dir():
-                user_file = parent / "discordrp-mpris" / "config.toml"
-                if user_file.is_file():
-                    logging.debug(f"Loading user config: {user_file!s}")
-                    with user_file.open() as f:
-                        return pytoml.load(f)
+        for pattern in USER_CONFIG_ROOTS:
+            if (
+                (config_root := Path(os.path.expandvars(pattern))).is_dir()
+                and (user_file := config_root / "discordrp-mpris" / "config.toml").is_file()
+            ):
+                logging.debug(f"Loading user config: {user_file!s}")
+                with user_file.open() as f:
+                    return pytoml.load(f)
 
         return None
