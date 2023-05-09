@@ -133,7 +133,7 @@ For available options, see the [default `config.toml`][default-config].
 [vlc]: https://www.videolan.org/vlc/
 [mps-youtube]: https://github.com/mps-youtube/mps-youtube
 [SMPlayer]: https://www.smplayer.info/
-[TOML]: https://github.com/toml-lang/toml
+[TOML]: https://toml.io/
 [default-config]: discordrp_mpris/config/config.toml
 [firefox-bug]: https://bugzilla.mozilla.org/show_bug.cgi?id=1659199
 [Mozilla Firefox]: https://www.mozilla.org/en-US/firefox/new/
