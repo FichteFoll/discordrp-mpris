@@ -169,7 +169,17 @@ class DiscordMpris:
                 activity['state'] = self.format_details("{state}", replacements)
 
         # set icons and hover texts
-        if player.name in PLAYER_ICONS:
+        show_art = self.config.player_get(player, 'show_art', True)
+        if (
+            show_art
+            and (art_url := metadata.get("mpris:artUrl"))
+            and (art_url.startswith("http://") or art_url.startswith("https://"))
+        ):
+            activity['assets'] = {'large_text': player.name,
+                                  'large_image': art_url,
+                                  'small_image': state.lower(),
+                                  'small_text': state}
+        elif player.name in PLAYER_ICONS:
             activity['assets'] = {'large_text': player.name,
                                   'large_image': PLAYER_ICONS[player.name],
                                   'small_image': state.lower(),

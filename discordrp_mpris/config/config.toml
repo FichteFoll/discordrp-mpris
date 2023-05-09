@@ -14,6 +14,10 @@ show_paused = true
 show_stopped = false
 # Available values are: "elapsed", "remaining" or "none".
 show_time = "elapsed"
+# Include the embedded album art.
+# For now, this requires the art URL to be publicly accessible,
+# e.g. for YouTube thumbnails.
+show_art = true
 # Whether to ignore a player. Supposed to be overridden.
 ignore = false
 # Maximum number of bytes in the title field
