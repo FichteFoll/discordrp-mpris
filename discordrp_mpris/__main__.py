@@ -13,7 +13,6 @@ from discord_rpc.async_ import (AsyncDiscordRpc, DiscordRpcError, JSON,
 
 from .config import Config
 
-CLIENT_ID = '435587535150907392'
 PLAYER_ICONS = {
     # Maps player identity name to icon name
     # https://discord.com/developers/applications/435587535150907392/rich-presence/assets
@@ -328,13 +327,17 @@ class DiscordMpris:
         return details
 
 
-async def main_async(loop: asyncio.AbstractEventLoop):
+async def main_async(loop: asyncio.AbstractEventLoop) -> int:
     config = Config.load()
     # TODO validate?
     configure_logging(config)
 
     mpris = await Mpris2Dbussy.create(loop=loop)
-    async with AsyncDiscordRpc.for_platform(CLIENT_ID) as discord:
+    client_id = config.raw_get('global.client_id')
+    if not client_id:
+        logger.error("client id missing!")
+        return 1
+    async with AsyncDiscordRpc.for_platform(client_id) as discord:
         instance = DiscordMpris(mpris, discord, config)
         return await instance.run()
 

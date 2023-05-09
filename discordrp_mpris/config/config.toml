@@ -6,6 +6,13 @@ log_level = "WARNING"
 poll_interval = 5
 reconnect_wait = 1
 
+# [Advanced usage]
+# Allows overriding the client id with your own.
+# This affects the icon assets that will be available for use,
+# as well as the main application name.
+# You can register your own at https://discord.com/developers/applications/.
+client_id = "435587535150907392"
+
 # The following can be overridden per player.
 [options]
 # Whether to show status for paused players.
