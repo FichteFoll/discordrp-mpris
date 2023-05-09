@@ -25,3 +25,6 @@ max_title_len = 64
 # is shown in your Discord Rich Presence (hover the icons).
 [player.Spotify]
 ignore = true
+
+# Player names with spaces must be quoted.
+#[player."Music Player Daemon"]
