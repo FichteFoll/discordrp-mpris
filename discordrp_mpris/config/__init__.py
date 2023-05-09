@@ -2,8 +2,12 @@ import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, Optional
+import sys
 
-import pytoml
+if sys.version_info < (3, 11):
+    import tomli as tomllib
+else:
+    import tomllib
 
 from ampris2 import PlayerInterfaces as Player
 
@@ -41,8 +45,8 @@ class Config:
 
     @classmethod
     def load(cls) -> 'Config':
-        with default_file.open() as f:
-            config = pytoml.load(f)
+        with default_file.open('rb') as f:
+            config = tomllib.load(f)
         user_config = cls._load_user_config()
         # TODO this is not a deep merge
         if user_config:
@@ -57,7 +61,7 @@ class Config:
                 and (user_file := config_root / "discordrp-mpris" / "config.toml").is_file()
             ):
                 logging.debug(f"Loading user config: {user_file!s}")
-                with user_file.open() as f:
-                    return pytoml.load(f)
+                with user_file.open('rb') as f:
+                    return tomllib.load(f)
 
         return None

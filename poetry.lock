@@ -12,18 +12,18 @@ files = [
 ]
 
 [[package]]
-name = "pytoml"
-version = "0.1.21"
-description = "A parser for TOML-0.4.0"
+name = "tomli"
+version = "2.0.1"
+description = "A lil' TOML parser"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 files = [
-    {file = "pytoml-0.1.21-py2.py3-none-any.whl", hash = "sha256:57a21e6347049f73bfb62011ff34cd72774c031b9828cb628a752225136dfc33"},
-    {file = "pytoml-0.1.21.tar.gz", hash = "sha256:8eecf7c8d0adcff3b375b09fe403407aa9b645c499e5ab8cac670ac4a35f61e7"},
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "6780c7d8ac07260e8018ef3f01730be9a6b4bf9df6e6c54145acf67ba862782f"
+content-hash = "df6811d757d916e23c0dc0e1ccc0f82151e068bbb4c6fe1b12efb20c4d38282d"
