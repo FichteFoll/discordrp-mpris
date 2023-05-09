@@ -13,18 +13,6 @@ from discord_rpc.async_ import (AsyncDiscordRpc, DiscordRpcError, JSON,
 
 from .config import Config
 
-PLAYER_ICONS = {
-    # Maps player identity name to icon name
-    # https://discord.com/developers/applications/435587535150907392/rich-presence/assets
-    'Clementine': 'clementine',
-    'Media Player Classic Qute Theater': 'mpc-qt',
-    'mpv': 'mpv',
-    'Music Player Daemon': 'mpd',
-    'VLC media player': 'vlc',
-    'SMPlayer': 'smplayer',
-    'Lollypop': 'lollypop',
-    'Mozilla Firefox': 'firefox',
-}
 DEFAULT_LOG_LEVEL = logging.WARNING
 
 logger = logging.getLogger(__name__)
@@ -178,9 +166,9 @@ class DiscordMpris:
                                   'large_image': art_url,
                                   'small_image': state.lower(),
                                   'small_text': state}
-        elif player.name in PLAYER_ICONS:
+        elif icon := self.config.player_get(player, 'icon'):
             activity['assets'] = {'large_text': player.name,
-                                  'large_image': PLAYER_ICONS[player.name],
+                                  'large_image': icon,
                                   'small_image': state.lower(),
                                   'small_text': state}
         else:
