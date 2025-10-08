@@ -36,28 +36,21 @@ Requirements:
 systemctl --user enable discordrp-mpris.service --now
 ```
 
-### Manual
+This project uses `uv` for development. Tested with `uv` version `0.1.11`.
 
-```sh
-pip install git+https://github.com/FichteFoll/discordrp-mpris.git
+### uv
 
-# Usage (assuming your Python bin folder is on PATH)
-discordrp-mpris
-```
-
-You might also want to use `pip install --user` instead.
-
-### poetry
-
-Requires [poetry][].
+Requires [uv][].
 
 ```sh
 git clone https://github.com/FichteFoll/discordrp-mpris.git
 cd discordrp-mpris
-poetry install
+# create venv and sync dependencies
+uv venv
+uv sync
 
 # Usage
-poetry run discordrp-mpris
+uv run discordrp-mpris
 ```
 
 
@@ -119,7 +112,7 @@ For available options, see the [default `config.toml`][default-config].
 <!-- Links -->
 
 [mpris2]: https://specifications.freedesktop.org/mpris-spec/2.2/
-[poetry]: https://python-poetry.org/
+[uv]: https://docs.astral.sh/uv/
 [Clementine]: https://www.clementine-player.org/
 [Strawberry]: https://www.strawberrymusicplayer.org/
 [cmus]: https://cmus.github.io/
