@@ -32,3 +32,6 @@ discordrp-mpris = "discordrp_mpris.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["discordrp_mpris", "discord_rpc", "ampris2"]
+
+[tool.pyright]
+typeCheckingMode = "basic"
