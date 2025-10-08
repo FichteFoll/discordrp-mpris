@@ -2,16 +2,20 @@ import asyncio
 import logging
 import re
 import sys
+import threading
 import time
 from textwrap import shorten
-from typing import Any, DefaultDict, Dict, Iterable, List, Optional, Union
+from typing import Any, DefaultDict, Dict, List, Optional, Union
 
-from ampris2 import Mpris2Dbussy, PlaybackStatus, PlayerInterfaces as Player, unwrap_metadata
-import dbussy
-from discord_rpc.async_ import (AsyncDiscordRpc, DiscordRpcError, JSON,
-                                exceptions as async_exceptions)
+from discord_rpc.async_ import (
+    AsyncDiscordRpc,
+    DiscordRpcError,
+    JSON,
+    exceptions as async_exceptions,
+)
 
 from .config import Config
+from mpris import Player, PlaybackStatus, Watcher
 
 DEFAULT_LOG_LEVEL = logging.WARNING
 
@@ -26,7 +30,6 @@ STATE_PRIORITY = [
     PlaybackStatus.PLAYING,
     PlaybackStatus.PAUSED,
     PlaybackStatus.STOPPED,
-    PlaybackStatus.UNKNOWN,
 ]
 
 # Maximum allowed characters of Rich Presence's "details" field
@@ -47,12 +50,26 @@ class DiscordMpris:
 
     active_player: Optional[Player] = None
     last_activity: Optional[JSON] = None
+    players: Dict[str, Player] = {}
+    changed = asyncio.Event()
 
-    def __init__(self, mpris: Mpris2Dbussy, discord: AsyncDiscordRpc, config: Config,
-                 ) -> None:
-        self.mpris = mpris
+    def __init__(self, discord: AsyncDiscordRpc, config: Config) -> None:
         self.discord = discord
         self.config = config
+
+    def on_player_added(self, player: Player) -> None:
+        self.players[player.unique_name] = player
+        self.changed.set()
+
+    def on_player_removed(self, player: Player) -> None:
+        self.players.pop(player.unique_name, None)
+        self.changed.set()
+
+    def on_playback_status_changed(self, player: Player) -> None:
+        self.changed.set()
+
+    def on_metadata_changed(self, player: Player) -> None:
+        self.changed.set()
 
     async def connect_discord(self) -> None:
         if self.discord.connected:
@@ -73,9 +90,12 @@ class DiscordMpris:
     async def run(self) -> int:
         await self.connect_discord()
 
+        self.changed.set()
         while True:
             try:
+                await self.changed.wait()
                 await self.tick()
+                self.changed.clear()
 
             except async_exceptions as e:
                 if logger.isEnabledFor(logging.DEBUG):
@@ -83,44 +103,31 @@ class DiscordMpris:
                 logger.info("Connection to Discord client lost. Reconnecting...")
                 await self.connect_discord()
 
-            except dbussy.DBusError as e:
-                if e.name == "org.freedesktop.DBus.Error.ServiceUnknown":
-                    # bus probably terminated during tick
-                    continue
-                logger.exception("Unknown DBusError encountered during tick", exc_info=e)
-                return 1  # TODO for now, this is unrecoverable
-
-            await asyncio.sleep(self.config.raw_get('global.poll_interval', 5))
-
     async def tick(self) -> None:
-        player = await self.find_active_player()
+        player = self.find_active_player()
         if not player:
             if self.active_player:
-                logger.info(f"Player {self.active_player.bus_name!r} unselected")
+                logger.info(f"Player {self.active_player.wellknown_name!r} unselected")
             if self.last_activity:
                 await self.discord.clear_activity()
                 self.last_activity = None
             self.active_player = None
             return
         # store for future prioritization
-        if not self.active_player or self.active_player.bus_name != player.bus_name:
-            logger.info(f"Selected player bus {player.bus_name!r}")
+        if not self.active_player or self.active_player.unique_name != player.unique_name:
+            logger.info(f"Selected player bus {player.wellknown_name!r}")
         self.active_player = player
 
         activity: JSON = {}
-        metadata, state = \
-            await asyncio.gather(
-                player.player.Metadata,  # type: ignore
-                player.player.PlaybackStatus,  # type: ignore
-            )
+        metadata = player.metadata
+        state = player.playback_status
         # Some players (like Firefox) don't support the required Position property
         position: Optional[Union[int, float]]
         try:
-            position = await player.player.Position  # type: ignore
-        except dbussy.DBusError as e:
+            position = player.get_property("Position")
+        except Exception as e:
             position = None
             logger.debug("Failed to retrieve position", exc_info=e)
-        metadata = unwrap_metadata(metadata)
         logger.debug(f"Metadata: {metadata}")
         length = metadata.get('mpris:length', 0)
 
@@ -162,17 +169,17 @@ class DiscordMpris:
             and (art_url := metadata.get("mpris:artUrl"))
             and (art_url.startswith("http://") or art_url.startswith("https://"))
         ):
-            activity['assets'] = {'large_text': player.name,
+            activity['assets'] = {'large_text': player.wellknown_name,
                                   'large_image': art_url,
                                   'small_image': state.lower(),
                                   'small_text': state}
         elif icon := self.config.player_get(player, 'icon'):
-            activity['assets'] = {'large_text': player.name,
+            activity['assets'] = {'large_text': player.wellknown_name,
                                   'large_image': icon,
                                   'small_image': state.lower(),
                                   'small_text': state}
         else:
-            activity['assets'] = {'large_text': f"{player.name} ({state})",
+            activity['assets'] = {'large_text': f"{player.wellknown_name} ({state})",
                                   'large_image': state.lower()}
 
         if activity != self.last_activity:
@@ -183,23 +190,19 @@ class DiscordMpris:
         else:
             logger.debug("Not sending activity because it didn't change")
 
-    async def find_active_player(self) -> Optional[Player]:
+    def find_active_player(self) -> Optional[Player]:
         active_player = self.active_player
-        players = await self.mpris.get_players()
+        players = list(self.players.values())
 
         # refresh active player (in case it restarted or sth)
         if active_player:
-            for p in players:
-                if p.bus_name == active_player.bus_name:
-                    active_player = p
-                    break
-            else:
-                logger.info(f"Player {active_player.bus_name!r} lost")
+            if active_player.unique_name not in self.players:
+                logger.info(f"Player {active_player.wellknown_name!r} lost")
                 self.active_player = active_player = None
 
-        groups = await self.group_players(players)
+        groups = self.group_players(players)
         if logger.isEnabledFor(logging.DEBUG):
-            debug_list = [(state, ", ".join(p.bus_name for p in groups[state]))
+            debug_list = [(state, ", ".join(p.wellknown_name for p in groups[state]))
                           for state in STATE_PRIORITY]
             logger.debug(f"found players: {debug_list}")
 
@@ -228,9 +231,6 @@ class DiscordMpris:
         else:
             return None
 
-    def _player_not_ignored(self, player: Player) -> bool:
-        return (not self.config.player_get(player, "ignore", False))
-
     @classmethod
     def build_replacements(
         cls,
@@ -257,7 +257,7 @@ class DiscordMpris:
         replacements['position'] = \
             cls.format_timestamp(int(position)) if position is not None else ''
         replacements['length'] = cls.format_timestamp(length)
-        replacements['player'] = player.name
+        replacements['player'] = player.wellknown_name
         replacements['state'] = state
 
         # replace invalid ident char
@@ -266,14 +266,13 @@ class DiscordMpris:
         return replacements
 
     @staticmethod
-    async def group_players(players: Iterable[Player]
-                            ) -> Dict[PlaybackStatus, List[Player]]:
+    def group_players(players: List[Player]) -> Dict[PlaybackStatus, List[Player]]:
         groups: Dict[PlaybackStatus, List[Player]] = {state: [] for state in PlaybackStatus}
         for p in players:
             try:
-                state = PlaybackStatus(await p.player.PlaybackStatus)  # type: ignore
-            except ValueError:
-                state = PlaybackStatus.UNKNOWN
+                state = p.playback_status
+            except (ValueError, TypeError):
+                state = PlaybackStatus.STOPPED
             groups[state].append(p)
 
         return groups
@@ -311,24 +310,36 @@ class DiscordMpris:
         return details
 
 
-async def main_async(loop: asyncio.AbstractEventLoop) -> int:
+async def main_async(instance: DiscordMpris) -> int:
+    return await instance.run()
+
+
+def main() -> int:
     config = Config.load()
     # TODO validate?
     configure_logging(config)
 
-    mpris = await Mpris2Dbussy.create(loop=loop)
     client_id = config.raw_get('global.client_id')
     if not client_id:
         logger.error("client id missing!")
         return 1
-    async with AsyncDiscordRpc.for_platform(client_id) as discord:
-        instance = DiscordMpris(mpris, discord, config)
-        return await instance.run()
 
-
-def main() -> int:
     loop = asyncio.new_event_loop()
-    main_task = loop.create_task(main_async(loop))
+    asyncio.set_event_loop(loop)
+
+    discord = AsyncDiscordRpc.for_platform(client_id)
+    instance = DiscordMpris(discord, config)
+
+    watcher = Watcher(
+        on_player_added=instance.on_player_added,
+        on_player_removed=instance.on_player_removed,
+        on_playback_status_changed=instance.on_playback_status_changed,
+        on_metadata_changed=instance.on_metadata_changed,
+    )
+    watcher_thread = threading.Thread(target=watcher.watch, daemon=True)
+    watcher_thread.start()
+
+    main_task = loop.create_task(main_async(instance))
     try:
         return loop.run_until_complete(main_task)
     except BaseException as e:
@@ -344,6 +355,8 @@ def main() -> int:
         if isinstance(e, Exception):
             logger.exception("Unknown exception", exc_info=e)
             return 1
+    finally:
+        loop.run_until_complete(discord.close())
 
     return 0
 

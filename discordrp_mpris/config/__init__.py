@@ -13,8 +13,6 @@ if sys.version_info < (3, 11):
 else:
     import tomllib
 
-from ampris2 import PlayerInterfaces as Player
-
 USER_CONFIG_ROOTS = ("$XDG_CONFIG_HOME", "$HOME/.config")
 
 logger = logging.getLogger(__name__)
@@ -44,12 +42,13 @@ class Config:
     def get(self, key: str, default: Any = None) -> Any:
         return self.raw_get(f"options.{key}", default)
 
-    def player_get(self, player: Player, key: str, default: Any = None) -> Any:
+    def player_get(self, player: "Player", key: str, default: Any = None) -> Any:
+        from mpris.player import Player
         base = self.get(key, default)
-        return self.raw_get(f"player.{player.name}.{key}", base)
+        return self.raw_get(f"player.{player.wellknown_name}.{key}", base)
 
     @classmethod
-    def load(cls) -> Config:
+    def load(cls) -> "Config":
         config = _load_default_file()
         if user_config := _load_user_file():
             merge_tables(config, user_config)
